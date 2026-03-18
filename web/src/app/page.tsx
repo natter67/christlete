@@ -1,304 +1,287 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Users, Zap, Shield, ChevronRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
-const FEATURES = [
-  {
-    icon: BookOpen,
-    label: 'Daily Devotionals',
-    description:
-      'Scripture and reflection written specifically for athletes — around pressure, injury, identity, team conflict, and the mental demands of competition.',
-  },
-  {
-    icon: Zap,
-    label: 'Pregame Prayer',
-    description:
-      'A focused check-in before every game or practice. Tell God how you are feeling. Receive a prayer for your exact moment.',
-  },
-  {
-    icon: Users,
-    label: 'Team Prayer Groups',
-    description:
-      'Verified spaces for your team, school, or tournament. Share prayer requests, post encouragement, and pray together before competition.',
-  },
+const FREE_FEATURES = [
+  'Daily athlete devotionals',
+  'Pregame prayer check-in',
+  '1 prayer group',
+  'Streak tracking',
 ];
 
-const QUOTES = [
-  {
-    text: 'Run in such a way as to get the prize.',
-    ref: '1 Corinthians 9:24',
-  },
-  {
-    text: 'He gives strength to the weary and increases the power of the weak.',
-    ref: 'Isaiah 40:29',
-  },
-  {
-    text: 'I can do all things through Christ who strengthens me.',
-    ref: 'Philippians 4:13',
-  },
+const ELITE_FEATURES = [
+  'Everything in Free',
+  'AI-personalized prayer',
+  'Unlimited prayer groups',
+  'Team leader dashboard',
+  'Weekly faith report',
+  'Advanced journaling',
+  'Bus devotional (shareable)',
+  'Tournament prayer rooms',
 ];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0F172A] overflow-x-hidden">
+    <div className="min-h-screen bg-[#080E1A] text-white overflow-x-hidden">
 
-      {/* ── NAV ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0F172A]/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[#F59E0B] font-bold text-xl tracking-tight">Christlete</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-slate-400">
-            <Link href="#features" className="hover:text-white transition-colors">Features</Link>
-            <Link href="#mission" className="hover:text-white transition-colors">Mission</Link>
-            <Link href="#devotional" className="hover:text-white transition-colors">Devotional</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-slate-400 hover:text-white transition-colors px-4 py-2"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/signup"
-              className="text-sm bg-[#F59E0B] text-[#0F172A] font-bold px-4 py-2 rounded-lg hover:bg-[#FBBF24] transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
+      {/* NAV */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-8 border-b border-white/[0.06] bg-[#080E1A]/90 backdrop-blur-md">
+        <span className="text-white font-bold text-lg tracking-tight">Christlete</span>
+        <div className="hidden md:flex items-center gap-8 text-sm text-slate-500">
+          <Link href="#features" className="hover:text-white transition-colors">Features</Link>
+          <Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link>
+          <Link href="#mission" className="hover:text-white transition-colors">Mission</Link>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
+            Sign in
+          </Link>
+          <Link
+            href="/signup"
+            className="text-sm font-bold bg-[#F59E0B] text-[#080E1A] px-4 py-2 rounded-lg hover:bg-[#FBBF24] transition-colors"
+          >
+            Start free
+          </Link>
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="relative pt-32 pb-24 px-6">
-        {/* Background glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[#1e3a6e]/20 rounded-full blur-[120px]" />
-          <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-[#F59E0B]/5 rounded-full blur-[80px]" />
-        </div>
+      {/* HERO */}
+      <section className="pt-40 pb-32 px-8 md:px-16 max-w-7xl mx-auto">
+        <p className="text-[#F59E0B] text-xs font-bold tracking-[0.2em] uppercase mb-8">
+          Faith for the Athlete
+        </p>
 
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
-            Faith for the Athlete
-          </div>
+        <h1 className="text-[clamp(3rem,8vw,7rem)] font-black leading-[0.92] tracking-tight text-white mb-10 max-w-5xl">
+          The spiritual home<br />
+          for Christian<br />
+          <span className="text-[#F59E0B]">athletes.</span>
+        </h1>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-white leading-[1.1] mb-6 text-balance">
-            Helping athletes bring faith into the{' '}
-            <span className="text-[#F59E0B]">moments that matter most.</span>
-          </h1>
+        <p className="text-slate-400 text-xl leading-relaxed max-w-xl mb-12">
+          Before games. After losses. During injury. On the bus. The moments athletes need
+          faith most have never had a product built for them. Until now.
+        </p>
 
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-8 mb-12">
-            A faith platform built for high school athletes. Daily devotionals tailored to sports
-            life. Pregame prayer check-ins. Team prayer groups that stay connected through
-            practices, games, and tournaments.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#F59E0B] text-[#0F172A] font-bold text-base px-8 py-4 rounded-xl hover:bg-[#FBBF24] transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Start for free
-              <ArrowRight size={18} />
-            </Link>
-            <a
-              href="#features"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white font-semibold text-base px-8 py-4 rounded-xl hover:bg-white/10 transition-colors"
-            >
-              See how it works
-            </a>
-          </div>
-
-          {/* Tagline row */}
-          <div className="flex items-center justify-center gap-6 mt-14 text-slate-500 text-sm">
-            <div className="flex items-center gap-2">
-              <Shield size={14} className="text-[#F59E0B]" />
-              <span>Built for high school athletes</span>
-            </div>
-            <span>·</span>
-            <div className="flex items-center gap-2">
-              <Shield size={14} className="text-[#F59E0B]" />
-              <span>Safe, verified communities</span>
-            </div>
-            <span>·</span>
-            <div className="flex items-center gap-2">
-              <Shield size={14} className="text-[#F59E0B]" />
-              <span>Free to start</span>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-4 items-center">
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-base px-8 py-4 rounded-xl hover:bg-[#FBBF24] transition-colors"
+          >
+            Get started free <ArrowRight size={18} />
+          </Link>
+          <Link
+            href="#pricing"
+            className="inline-flex items-center gap-2 text-slate-400 font-semibold text-base px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 hover:text-white transition-colors"
+          >
+            See Christlete Elite
+          </Link>
         </div>
       </section>
 
-      {/* ── SCRIPTURE SCROLL ── */}
-      <section className="py-10 border-y border-white/5 overflow-hidden">
-        <div className="flex gap-16 animate-none">
-          <div className="flex gap-16 whitespace-nowrap">
-            {[...QUOTES, ...QUOTES].map((q, i) => (
-              <div key={i} className="flex items-center gap-4 flex-shrink-0">
-                <span className="text-slate-500 text-sm italic">"{q.text}"</span>
-                <span className="text-[#F59E0B] text-xs font-bold">— {q.ref}</span>
-                {i < QUOTES.length * 2 - 1 && (
-                  <span className="text-slate-700 text-xl">·</span>
-                )}
-              </div>
-            ))}
-          </div>
+      {/* SCRIPTURE STRIP */}
+      <div className="border-y border-white/[0.06] py-6 px-8">
+        <div className="max-w-7xl mx-auto flex flex-wrap gap-x-12 gap-y-3 items-center text-slate-600 text-sm">
+          <span className="italic">"I can do all things through Christ who strengthens me." <span className="text-[#F59E0B] not-italic font-bold">Phil 4:13</span></span>
+          <span className="hidden md:block w-px h-4 bg-white/10" />
+          <span className="italic">"He gives strength to the weary." <span className="text-[#F59E0B] not-italic font-bold">Isa 40:29</span></span>
+          <span className="hidden md:block w-px h-4 bg-white/10" />
+          <span className="italic">"Be still and know that I am God." <span className="text-[#F59E0B] not-italic font-bold">Ps 46:10</span></span>
         </div>
-      </section>
+      </div>
 
-      {/* ── FEATURES ── */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">
-              What Christlete Does
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
-              Faith built into the rhythm of sports.
+      {/* WHAT IT IS */}
+      <section id="features" className="py-32 px-8 md:px-16 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-20 items-start">
+          <div>
+            <p className="text-[#F59E0B] text-xs font-bold tracking-[0.2em] uppercase mb-6">What Christlete Does</p>
+            <h2 className="text-5xl md:text-6xl font-black leading-[0.95] tracking-tight mb-8">
+              Faith built into<br />the rhythm<br />of sports.
             </h2>
-            <p className="text-slate-400 text-lg max-w-xl mx-auto">
-              Not a generic Bible app. Not a social feed. A spiritual companion built
-              around the actual moments of an athlete's life.
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Not a Bible app. Not a social feed. A spiritual companion built around
+              the actual moments of an athlete's life.
             </p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {FEATURES.map((f, i) => (
-              <div
-                key={i}
-                className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-3xl p-8 hover:border-[#F59E0B]/30 transition-colors group"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-[#F59E0B]/10 flex items-center justify-center mb-6 group-hover:bg-[#F59E0B]/20 transition-colors">
-                  <f.icon size={22} className="text-[#F59E0B]" />
+          <div className="space-y-px">
+            {[
+              {
+                num: '01',
+                title: 'Daily Devotionals',
+                body: 'Written specifically for athletes. Pressure, injury, identity, team conflict, mental health. Every devotional meets you where the sport actually takes you.',
+              },
+              {
+                num: '02',
+                title: 'Pregame Prayer',
+                body: 'Pick how you are feeling. Tell God what you are carrying. Receive a prayer for your exact moment. Takes sixty seconds. Changes everything.',
+              },
+              {
+                num: '03',
+                title: 'Team Prayer Groups',
+                body: 'Verified spaces for your team, your school, or your tournament. Shared prayer requests. Pregame check-ins. Post-game reflections.',
+              },
+            ].map((f) => (
+              <div key={f.num} className="group border border-white/[0.06] rounded-2xl p-8 hover:border-[#F59E0B]/20 hover:bg-white/[0.02] transition-all cursor-default">
+                <div className="flex items-start gap-6">
+                  <span className="text-[#F59E0B]/40 text-xs font-black tracking-widest pt-1 flex-shrink-0">{f.num}</span>
+                  <div>
+                    <h3 className="text-white font-bold text-lg mb-2">{f.title}</h3>
+                    <p className="text-slate-500 text-sm leading-7">{f.body}</p>
+                  </div>
                 </div>
-                <h3 className="text-white text-xl font-bold mb-3">{f.label}</h3>
-                <p className="text-slate-400 text-[15px] leading-7">{f.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── MISSION SECTION ── */}
-      <section id="mission" className="py-24 px-6 bg-[#0a1020]">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-4">
-                Why Christlete Exists
-              </p>
-              <h2 className="text-4xl font-bold text-white leading-tight mb-6">
-                Athletes experience some of the most spiritually significant moments of their lives inside competition.
-              </h2>
-              <p className="text-slate-400 text-base leading-8 mb-6">
-                Before games. After losses. On the bus. During injuries. In the locker room. These are the moments where faith support would mean the most — and there's nothing built to meet athletes there.
-              </p>
-              <p className="text-slate-400 text-base leading-8">
-                Christlete closes that gap.
-              </p>
-            </div>
-            <div className="space-y-4">
-              {[
-                'Faith connection around real sports moments',
-                'Athlete-specific devotionals — not generic content',
-                'Safe, verified team and event communities',
-                'Natural, invitational — not preachy',
-                'Built for the real rhythm of a season',
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F59E0B] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ChevronRight size={12} className="text-[#0F172A]" />
-                  </div>
-                  <span className="text-slate-300 text-[15px] leading-6">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEVOTIONAL PREVIEW ── */}
-      <section id="devotional" className="py-24 px-6">
+      {/* DEVOTIONAL PREVIEW */}
+      <section className="py-20 px-8 md:px-16 bg-[#0a1020] border-y border-white/[0.06]">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">
-              Today's Word
-            </p>
-            <h2 className="text-3xl font-bold text-white">A taste of what's inside.</h2>
-          </div>
-
-          <div className="bg-[#1e2d47] rounded-3xl p-8 md:p-10 border border-[#1e3a6e]">
-            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-4">
-              Before the Whistle Blows
-            </p>
-            <blockquote className="text-slate-300 text-lg italic leading-9 mb-4 border-l-4 border-[#F59E0B] pl-6">
+          <p className="text-[#F59E0B] text-xs font-bold tracking-[0.2em] uppercase mb-8">Today's Devotional</p>
+          <div className="border border-white/[0.08] rounded-3xl p-10">
+            <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-6">Before the Whistle Blows</p>
+            <blockquote className="text-2xl md:text-3xl font-semibold text-white leading-snug mb-4 border-l-2 border-[#F59E0B] pl-8">
               "Be still and know that I am God."
             </blockquote>
-            <p className="text-slate-500 text-sm font-bold mb-8">— Psalm 46:10</p>
-
-            <p className="text-slate-300 text-[15px] leading-8 mb-6">
-              The minutes before competition are loud. Your mind is running through scenarios, your
-              heart rate is up, coaches are talking, music is playing, teammates are moving.
-              Everything in sports culture tells you to get hyped, get locked in, get ready.
+            <p className="text-slate-500 text-sm font-bold pl-8 mb-10">Psalm 46:10</p>
+            <p className="text-slate-400 text-base leading-8 mb-5">
+              The minutes before competition are loud. Your mind is running through scenarios,
+              your heart rate is up, coaches are talking, teammates are moving. Everything in
+              sports culture tells you to get hyped and locked in.
             </p>
-            <p className="text-slate-300 text-[15px] leading-8 mb-8">
-              But there is a different kind of readiness. The kind that comes from stillness. From
-              the ten seconds before the game where you close your eyes, take one breath, and
-              remember who made you and why you play.
+            <p className="text-slate-400 text-base leading-8 mb-10">
+              But there is a different kind of readiness. The kind that comes from stillness.
+              From the ten seconds before the game where you close your eyes, take one breath,
+              and remember who made you and why you play.
             </p>
-
-            <div className="bg-[#0F172A] rounded-2xl p-5 border border-[#1e3a6e] mb-8">
-              <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">
-                Reflect
-              </p>
-              <p className="text-white text-base font-medium">
+            <div className="bg-[#080E1A] rounded-2xl p-6 border border-white/[0.06] mb-8">
+              <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">Reflect</p>
+              <p className="text-white text-base font-medium leading-7">
                 Can you find thirty seconds of stillness before your next practice or game?
                 What does God want you to hear in it?
               </p>
             </div>
-
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#0F172A] font-bold px-6 py-3 rounded-xl hover:bg-[#FBBF24] transition-colors"
+              className="inline-flex items-center gap-2 text-[#F59E0B] font-bold text-sm hover:gap-3 transition-all"
             >
-              Read today's full devotional
-              <ArrowRight size={16} />
+              Read full devotional and journal your reflection <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-24 px-6 bg-[#0a1020]">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight text-balance">
-            The spiritual home for Christian athletes.
+      {/* MISSION */}
+      <section id="mission" className="py-32 px-8 md:px-16 max-w-7xl mx-auto">
+        <div className="max-w-3xl">
+          <p className="text-[#F59E0B] text-xs font-bold tracking-[0.2em] uppercase mb-8">Why This Exists</p>
+          <h2 className="text-5xl md:text-6xl font-black leading-[0.95] tracking-tight text-white mb-10">
+            Athletes face some of the most spiritually significant moments of their lives inside competition.
           </h2>
-          <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto leading-8">
-            Join athletes who are bringing faith into practices, games, and tournaments —
-            and experiencing what it means to compete for something bigger.
+          <p className="text-slate-400 text-xl leading-relaxed mb-6">
+            Before games. After losses. During injuries. On the bus. At tournaments far from home.
+            These are the moments where faith support would mean the most.
           </p>
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#0F172A] font-bold text-lg px-10 py-4 rounded-xl hover:bg-[#FBBF24] transition-all hover:scale-[1.02]"
-          >
-            Create your account
-            <ArrowRight size={20} />
-          </Link>
-          <p className="text-slate-600 text-sm mt-4">Free. No credit card required.</p>
+          <p className="text-slate-500 text-xl leading-relaxed">
+            There was nothing built to meet athletes there. Christlete closes that gap.
+          </p>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-white/5 py-10 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-[#F59E0B] font-bold text-lg">Christlete</span>
-          <p className="text-slate-600 text-sm">
-            Faith for the athlete. Built with purpose.
-          </p>
-          <div className="flex items-center gap-6 text-slate-600 text-sm">
+      {/* PRICING */}
+      <section id="pricing" className="py-32 px-8 md:px-16 bg-[#0a1020] border-y border-white/[0.06]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-[#F59E0B] text-xs font-bold tracking-[0.2em] uppercase mb-4">Pricing</p>
+            <h2 className="text-5xl font-black tracking-tight text-white mb-4">Simple. Honest.</h2>
+            <p className="text-slate-500 text-lg">Free gets you started. Elite takes you further.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Free */}
+            <div className="border border-white/[0.08] rounded-3xl p-10">
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-3">Free</p>
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-5xl font-black text-white">$0</span>
+                <span className="text-slate-500 text-sm mb-2">forever</span>
+              </div>
+              <p className="text-slate-500 text-sm mb-10">Everything you need to start your faith journey as an athlete.</p>
+              <ul className="space-y-4 mb-10">
+                {FREE_FEATURES.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-slate-300 text-sm">
+                    <Check size={14} className="text-[#F59E0B] flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/signup"
+                className="block text-center py-4 rounded-xl border border-white/10 text-white font-bold text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
+              >
+                Get started free
+              </Link>
+            </div>
+
+            {/* Elite */}
+            <div className="border border-[#F59E0B]/30 rounded-3xl p-10 bg-[#F59E0B]/[0.04] relative overflow-hidden">
+              <div className="absolute top-6 right-6">
+                <span className="bg-[#F59E0B] text-[#080E1A] text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                  Elite
+                </span>
+              </div>
+              <p className="text-[#F59E0B] text-sm font-bold uppercase tracking-widest mb-3">Christlete Elite</p>
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-5xl font-black text-white">$6.99</span>
+                <span className="text-slate-400 text-sm mb-2">/ month</span>
+              </div>
+              <p className="text-slate-400 text-sm mb-1">or $49.99/year <span className="text-[#F59E0B] font-bold">save 40%</span></p>
+              <p className="text-slate-500 text-sm mb-10">For the athlete who wants to go deeper.</p>
+              <ul className="space-y-4 mb-10">
+                {ELITE_FEATURES.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-slate-300 text-sm">
+                    <Check size={14} className="text-[#F59E0B] flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/signup?plan=elite"
+                className="block text-center py-4 rounded-xl bg-[#F59E0B] text-[#080E1A] font-bold text-sm hover:bg-[#FBBF24] transition-colors"
+              >
+                Start Elite free for 7 days
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-40 px-8 text-center max-w-4xl mx-auto">
+        <h2 className="text-6xl md:text-7xl font-black leading-[0.92] tracking-tight text-white mb-8">
+          Compete for something<br />
+          <span className="text-[#F59E0B]">bigger.</span>
+        </h2>
+        <p className="text-slate-400 text-xl leading-relaxed max-w-xl mx-auto mb-12">
+          Join athletes who are bringing faith into practices, games, and tournaments.
+          It starts with showing up. God does the rest.
+        </p>
+        <Link
+          href="/signup"
+          className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-lg px-10 py-5 rounded-xl hover:bg-[#FBBF24] transition-colors"
+        >
+          Create your account <ArrowRight size={20} />
+        </Link>
+        <p className="text-slate-600 text-sm mt-4">Free. No credit card required.</p>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-white/[0.06] py-10 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <span className="text-white font-bold">Christlete</span>
+          <p className="text-slate-700 text-xs">Faith for the athlete. Built with purpose.</p>
+          <div className="flex gap-6 text-slate-600 text-sm">
             <Link href="/login" className="hover:text-slate-400 transition-colors">Sign in</Link>
             <Link href="/signup" className="hover:text-slate-400 transition-colors">Sign up</Link>
+            <Link href="#pricing" className="hover:text-slate-400 transition-colors">Pricing</Link>
           </div>
         </div>
       </footer>

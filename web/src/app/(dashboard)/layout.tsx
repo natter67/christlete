@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookOpen, Zap, Users, LayoutDashboard, User } from 'lucide-react';
+import { BookOpen, Zap, Users, LayoutDashboard, User, Star } from 'lucide-react';
 
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
@@ -31,11 +31,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="px-6 py-4 border-t border-white/5">
-          <p className="text-slate-600 text-xs italic">
-            "Whatever you do, work at it with all your heart."
+        <div className="px-3 py-4 border-t border-white/5 space-y-1">
+          <Link
+            href="/upgrade"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/20 transition-colors text-sm font-semibold group"
+          >
+            <Star size={16} />
+            Go Elite
+          </Link>
+          <p className="text-slate-700 text-[11px] italic px-3 pt-2">
+            &ldquo;Whatever you do, work at it with all your heart.&rdquo; Col 3:23
           </p>
-          <p className="text-slate-700 text-xs mt-1">— Col 3:23</p>
         </div>
       </aside>
 
