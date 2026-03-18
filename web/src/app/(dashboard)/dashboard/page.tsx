@@ -1,19 +1,25 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Zap, Users } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const TODAY_DEV = {
-  title: 'Before the Whistle Blows',
-  scripture: 'Be still and know that I am God.',
-  scripture_ref: 'Psalm 46:10',
-  body: 'The minutes before competition are loud. Your mind is running through scenarios, your heart rate is up, coaches are talking, music is playing. But there is a different kind of readiness that comes from stillness.',
+type Devotional = {
+  title: string;
+  scripture: string;
+  scripture_ref: string;
+  body: string;
 };
 
 export default function DashboardPage() {
+  const [devotional, setDevotional] = useState<Devotional | null>(null);
+  const [userName, setUserName] = useState('Athlete');
+  const [loading, setLoading] = useState(true);
+
   const now = new Date();
   const dayName = DAYS[now.getDay()];
   const dateStr = `${MONTHS[now.getMonth()]} ${now.getDate()}`;
@@ -22,30 +28,81 @@ export default function DashboardPage() {
   if (hour < 12) greeting = 'Good morning';
   else if (hour < 17) greeting = 'Good afternoon';
 
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const dayIndex = new Date().getDay();
+
+      const [{ data: devData }, { data: userData }] = await Promise.all([
+        supabase
+          .from('devotionals')
+          .select('title, scripture, scripture_ref, body')
+          .eq('day_index', dayIndex)
+          .eq('published', true)
+          .single(),
+        supabase.auth.getUser(),
+      ]);
+
+      if (devData) setDevotional(devData);
+
+      if (userData.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', userData.user.id)
+          .single();
+        if (profile?.name) {
+          setUserName(profile.name.split(' ')[0]);
+        }
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, []);
+
   return (
     <div className="pb-24 md:pb-8">
       <div className="mb-8">
         <p className="text-slate-500 text-sm">{dayName}, {dateStr}</p>
-        <h1 className="text-white text-3xl font-bold mt-1">{greeting}, Athlete.</h1>
+        <h1 className="text-white text-3xl font-bold mt-1">{greeting}, {userName}.</h1>
       </div>
 
-      <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6">
-        <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">Today&apos;s Verse</p>
-        <p className="text-slate-300 text-lg italic leading-8 mb-2">&ldquo;{TODAY_DEV.scripture}&rdquo;</p>
-        <p className="text-slate-500 text-sm font-bold">{TODAY_DEV.scripture_ref}</p>
-      </div>
+      {loading ? (
+        <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6 animate-pulse">
+          <div className="h-3 w-24 bg-[#1e3a6e] rounded mb-4" />
+          <div className="h-5 w-3/4 bg-[#1e3a6e] rounded mb-3" />
+          <div className="h-4 w-32 bg-[#1e3a6e] rounded" />
+        </div>
+      ) : devotional ? (
+        <>
+          <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6">
+            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">Today&apos;s Verse</p>
+            <p className="text-slate-300 text-lg italic leading-8 mb-2">&ldquo;{devotional.scripture}&rdquo;</p>
+            <p className="text-slate-500 text-sm font-bold">{devotional.scripture_ref}</p>
+          </div>
 
-      <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6 hover:border-[#F59E0B]/30 transition-colors">
-        <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">Today&apos;s Devotional</p>
-        <h2 className="text-white text-xl font-bold mb-3">{TODAY_DEV.title}</h2>
-        <p className="text-slate-400 text-sm leading-7 mb-4 line-clamp-3">{TODAY_DEV.body}</p>
-        <Link
-          href="/devotional"
-          className="inline-flex items-center gap-2 text-[#F59E0B] text-sm font-semibold"
-        >
-          Read full devotional <ArrowRight size={14} />
-        </Link>
-      </div>
+          <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6 hover:border-[#F59E0B]/30 transition-colors">
+            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">Today&apos;s Devotional</p>
+            <h2 className="text-white text-xl font-bold mb-3">{devotional.title}</h2>
+            <p className="text-slate-400 text-sm leading-7 mb-4 line-clamp-3">
+              {devotional.body.split('\n\n')[0]}
+            </p>
+            <Link
+              href="/devotional"
+              className="inline-flex items-center gap-2 text-[#F59E0B] text-sm font-semibold"
+            >
+              Read full devotional <ArrowRight size={14} />
+            </Link>
+          </div>
+        </>
+      ) : (
+        <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6">
+          <p className="text-slate-500 text-sm">No devotional found for today.</p>
+        </div>
+      )}
 
       <h2 className="text-white font-bold text-lg mb-4">Quick Actions</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

@@ -1,79 +1,159 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase';
 
-const DEVOTIONALS = [
-  {
-    id: 'sun',
-    day: 'Sunday',
-    title: 'Rest Is Sacred',
-    scripture: '"Come to me, all you who are weary and burdened, and I will give you rest."',
-    scripture_ref: 'Matthew 11:28',
-    body: `The world tells athletes that rest is weakness — that more reps, more film, more grind is always the answer. But God built rest into creation itself. He rested on the seventh day not because He was tired, but to show us that stillness is holy. Your body needs recovery. Your soul needs Sundays.
-
-Today, lay down the scoreboard, the ranking, the pressure. Let God speak into the quiet. You don't earn His love by grinding through rest. You receive it by trusting Him enough to stop.`,
-    reflection_prompt: 'What does real rest look like for you today? Where do you need to let go of striving and simply receive?',
-  },
-  {
-    id: 'fri',
-    day: 'Friday',
-    title: 'Pregame Peace',
-    scripture: '"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus."',
-    scripture_ref: 'Philippians 4:6-7',
-    body: `Game day nerves are real. Your heart rate rises, your mind races through scenarios. Paul knew anxiety — he wrote this letter in chains. And his answer is not "calm down" or "you've got this." His answer is prayer.
-
-Not a performance prayer. Not a bargaining prayer. A thankful prayer. You bring God your anxious heart and a list of requests. He trades you peace for it. Not peace that makes sense, but a supernatural calm that guards you from the inside out.
-
-Before you warm up today, pray.`,
-    reflection_prompt: "What specific anxiety about today's competition do you want to hand to God? Write it down and speak it out loud to Him.",
-  },
-];
+type Devotional = {
+  id: string;
+  title: string;
+  scripture: string;
+  scripture_ref: string;
+  body: string;
+  reflection_prompt: string;
+};
 
 export default function DevotionalPage() {
-  const dayIndex = new Date().getDay();
-  const todayDev = DEVOTIONALS.find((_, i) => i === (dayIndex === 5 ? 1 : 0)) ?? DEVOTIONALS[0];
+  const [devotional, setDevotional] = useState<Devotional | null>(null);
+  const [loading, setLoading] = useState(true);
   const [reflection, setReflection] = useState('');
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [existingEntry, setExistingEntry] = useState<string | null>(null);
 
-  const handleSave = () => {
-    if (!reflection.trim()) return;
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const dayIndex = new Date().getDay();
+
+      const [{ data: devData }, { data: { user } }] = await Promise.all([
+        supabase
+          .from('devotionals')
+          .select('id, title, scripture, scripture_ref, body, reflection_prompt')
+          .eq('day_index', dayIndex)
+          .eq('published', true)
+          .single(),
+        supabase.auth.getUser(),
+      ]);
+
+      if (devData) {
+        setDevotional(devData);
+
+        if (user) {
+          const today = new Date().toISOString().split('T')[0];
+          const { data: entry } = await supabase
+            .from('journal_entries')
+            .select('id, body')
+            .eq('user_id', user.id)
+            .eq('devotional_id', devData.id)
+            .gte('created_at', `${today}T00:00:00`)
+            .single();
+
+          if (entry) {
+            setReflection(entry.body);
+            setExistingEntry(entry.id);
+            setSaved(true);
+          }
+        }
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, []);
+
+  const handleSave = async () => {
+    if (!reflection.trim() || !devotional) return;
+    setSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (existingEntry) {
+        await supabase
+          .from('journal_entries')
+          .update({ body: reflection })
+          .eq('id', existingEntry);
+      } else {
+        const { data: inserted } = await supabase
+          .from('journal_entries')
+          .insert({
+            user_id: user.id,
+            devotional_id: devotional.id,
+            body: reflection,
+          })
+          .select('id')
+          .single();
+        if (inserted) setExistingEntry(inserted.id);
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      // non-blocking
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="pb-24 md:pb-8 max-w-2xl animate-pulse">
+        <div className="h-3 w-28 bg-[#1e3a6e] rounded mb-4" />
+        <div className="h-8 w-2/3 bg-[#1e3a6e] rounded mb-8" />
+        <div className="border-l-4 border-[#F59E0B]/30 pl-6 mb-10">
+          <div className="h-5 w-full bg-[#1e3a6e] rounded mb-3" />
+          <div className="h-5 w-3/4 bg-[#1e3a6e] rounded mb-4" />
+          <div className="h-3 w-24 bg-[#1e3a6e] rounded" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-4 bg-[#1e3a6e] rounded w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!devotional) {
+    return (
+      <div className="pb-24 md:pb-8 max-w-2xl">
+        <p className="text-slate-500">No devotional found for today. Check back later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 md:pb-8 max-w-2xl">
-      {/* Header */}
       <div className="mb-8">
         <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">Daily Devotional</p>
-        <h1 className="text-white text-3xl font-bold">{todayDev.title}</h1>
+        <h1 className="text-white text-3xl font-bold">{devotional.title}</h1>
       </div>
 
-      {/* Scripture */}
       <div className="border-l-4 border-[#F59E0B] pl-6 mb-10">
-        <p className="text-slate-300 text-lg italic leading-9 mb-2">{todayDev.scripture}</p>
-        <p className="text-[#F59E0B] text-sm font-bold">{todayDev.scripture_ref}</p>
+        <p className="text-slate-300 text-lg italic leading-9 mb-2">&ldquo;{devotional.scripture}&rdquo;</p>
+        <p className="text-[#F59E0B] text-sm font-bold">{devotional.scripture_ref}</p>
       </div>
 
-      {/* Body */}
       <div className="space-y-5 mb-10">
-        {todayDev.body.split('\n\n').map((p, i) => (
+        {devotional.body.split('\n\n').map((p, i) => (
           <p key={i} className="text-slate-300 text-[15px] leading-8">{p}</p>
         ))}
       </div>
 
-      {/* Reflection */}
       <div className="bg-[#1e3a6e]/20 border border-[#1e3a6e] rounded-2xl p-6 mb-8">
         <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-3">Reflect</p>
-        <p className="text-white text-base font-medium leading-7">{todayDev.reflection_prompt}</p>
+        <p className="text-white text-base font-medium leading-7">{devotional.reflection_prompt}</p>
       </div>
 
-      {/* Journal */}
       <div className="mb-6">
         <p className="text-slate-400 text-sm font-semibold mb-3">Write your response</p>
         <textarea
           value={reflection}
-          onChange={(e) => setReflection(e.target.value)}
+          onChange={(e) => { setReflection(e.target.value); setSaved(false); }}
           rows={5}
           placeholder="What is God saying to you through this today?"
           className="w-full bg-[#1e2d47] border border-[#1e3a6e] text-white rounded-2xl px-4 py-4 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors resize-none leading-7"
@@ -82,7 +162,7 @@ export default function DevotionalPage() {
 
       <button
         onClick={handleSave}
-        disabled={!reflection.trim()}
+        disabled={!reflection.trim() || saving}
         className={`w-full py-3.5 rounded-xl font-bold text-sm transition-colors ${
           saved
             ? 'bg-green-600 text-white'
@@ -91,7 +171,7 @@ export default function DevotionalPage() {
             : 'bg-[#1e2d47] text-slate-500 cursor-not-allowed'
         }`}
       >
-        {saved ? 'Reflection saved ✓' : 'Save Reflection'}
+        {saving ? 'Saving...' : saved ? 'Reflection saved' : 'Save Reflection'}
       </button>
     </div>
   );

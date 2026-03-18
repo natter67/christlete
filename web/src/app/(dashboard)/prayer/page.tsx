@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createClient } from '@/lib/supabase';
 
 type Feeling = { id: string; label: string; emoji: string; prayer: string };
 
@@ -38,8 +39,31 @@ export default function PrayerPage() {
   const [selected, setSelected] = useState<Feeling | null>(null);
   const [carrying, setCarrying] = useState('');
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const reset = () => { setStep('feeling'); setSelected(null); setCarrying(''); setDone(false); };
+  const reset = () => { setStep('feeling'); setSelected(null); setCarrying(''); setDone(false); setSaving(false); };
+
+  const handlePrayed = async () => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('prayer_checkins').insert({
+          user_id: user.id,
+          feeling: selected.id,
+          carrying: carrying.trim() || null,
+          prayer_text: selected.prayer,
+        });
+      }
+    } catch {
+      // non-blocking — checkin is best-effort
+    } finally {
+      setSaving(false);
+      setDone(true);
+    }
+  };
 
   return (
     <div className="pb-24 md:pb-8 max-w-xl">
@@ -117,7 +141,7 @@ export default function PrayerPage() {
               onClick={() => setStep('feeling')}
               className="w-full py-3 text-slate-600 text-sm"
             >
-              ← Back
+              Back
             </button>
           </div>
         </>
@@ -140,7 +164,7 @@ export default function PrayerPage() {
           {carrying.trim() && (
             <div className="bg-[#1e3a6e]/20 border border-[#1e3a6e] rounded-2xl p-5 mb-6">
               <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">You Brought</p>
-              <p className="text-slate-300 text-sm italic leading-6">"{carrying}"</p>
+              <p className="text-slate-300 text-sm italic leading-6">&ldquo;{carrying}&rdquo;</p>
               <p className="text-slate-500 text-sm mt-2">He hears it. Lay it down.</p>
             </div>
           )}
@@ -148,7 +172,7 @@ export default function PrayerPage() {
           <div className="bg-[#1e2d47] border border-[#1e3a6e] rounded-2xl p-5 mb-6">
             <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">A Word for Today</p>
             <p className="text-slate-300 text-sm italic leading-6">
-              "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."
+              &ldquo;Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.&rdquo;
             </p>
             <p className="text-slate-500 text-xs mt-2 font-bold">Philippians 4:6</p>
           </div>
@@ -156,10 +180,11 @@ export default function PrayerPage() {
           <div className="space-y-3">
             {!done ? (
               <button
-                onClick={() => setDone(true)}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors"
+                onClick={handlePrayed}
+                disabled={saving}
+                className="w-full py-3.5 rounded-xl font-bold text-sm bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors disabled:opacity-60"
               >
-                I Prayed This ✓
+                {saving ? 'Saving...' : 'I Prayed This'}
               </button>
             ) : (
               <div className="w-full py-3.5 rounded-xl text-center border border-green-700/50 bg-green-900/20">
