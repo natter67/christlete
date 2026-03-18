@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -29,8 +29,10 @@ export async function POST(req: NextRequest) {
 
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
-      const userId = session.subscription_data?.metadata?.supabase_user_id
-        ?? (session as { metadata?: Record<string, string> }).metadata?.supabase_user_id;
+
+      // userId stored on the customer metadata at creation time
+      const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+      const userId = customer.metadata?.supabase_user_id;
 
       if (!userId) break;
 
