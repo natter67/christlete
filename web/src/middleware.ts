@@ -3,7 +3,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const PROTECTED = ['/dashboard', '/prayer', '/groups', '/devotional', '/profile', '/upgrade'];
+// Routes that logged-in users should not be able to visit
 const AUTH_ROUTES = ['/login', '/signup'];
+// Routes that are accessible without auth but should NOT redirect authenticated users away
+// (e.g., /reset-password, /forgot-password need to work regardless of auth state)
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

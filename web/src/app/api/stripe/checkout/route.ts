@@ -17,13 +17,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const { priceId } = await req.json();
+
+    // Build allowlist from server-side env vars (never exposed to browser)
     const allowedPriceIds = [
       process.env.STRIPE_PRICE_MONTHLY,
       process.env.STRIPE_PRICE_YEARLY,
-    ].filter(Boolean);
+    ].filter(Boolean) as string[];
 
-    if (!priceId || (allowedPriceIds.length > 0 && !allowedPriceIds.includes(priceId))) {
-      return NextResponse.json({ error: 'Invalid priceId' }, { status: 400 });
+    // Require at least one env var to be set — reject everything if unconfigured
+    if (allowedPriceIds.length === 0) {
+      return NextResponse.json({ error: 'Pricing not configured' }, { status: 503 });
+    }
+
+    if (!priceId || !allowedPriceIds.includes(priceId)) {
+      return NextResponse.json({ error: 'Invalid price selection' }, { status: 400 });
     }
 
     const supabase = await createClient();
@@ -66,7 +73,7 @@ export async function POST(req: NextRequest) {
       }, { onConflict: 'user_id' });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://christlete.vercel.app';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://christlete.love';
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -83,8 +90,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('Stripe checkout error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Log full error server-side but never expose internal details to client
+    console.error('Stripe checkout error:', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Checkout failed. Please try again.' }, { status: 500 });
   }
 }

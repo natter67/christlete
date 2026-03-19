@@ -18,6 +18,7 @@ export default function DevotionalPage() {
   const [reflection, setReflection] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [existingEntry, setExistingEntry] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,13 +41,15 @@ export default function DevotionalPage() {
         setDevotional(devData);
 
         if (user) {
-          const today = new Date().toISOString().split('T')[0];
+          // Use local date to avoid UTC timezone mismatch
+          const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local TZ
           const { data: entry } = await supabase
             .from('journal_entries')
             .select('id, body')
             .eq('user_id', user.id)
             .eq('devotional_id', devData.id)
-            .gte('created_at', `${today}T00:00:00`)
+            .gte('created_at', `${today}T00:00:00+00:00`)
+            .lt('created_at', `${today}T23:59:59+00:00`)
             .maybeSingle();
 
           if (entry) {
@@ -66,6 +69,7 @@ export default function DevotionalPage() {
   const handleSave = async () => {
     if (!reflection.trim() || !devotional) return;
     setSaving(true);
+    setSaveError('');
 
     try {
       const supabase = createClient();
@@ -73,12 +77,13 @@ export default function DevotionalPage() {
       if (!user) return;
 
       if (existingEntry) {
-        await supabase
+        const { error } = await supabase
           .from('journal_entries')
           .update({ body: reflection })
           .eq('id', existingEntry);
+        if (error) throw error;
       } else {
-        const { data: inserted } = await supabase
+        const { data: inserted, error } = await supabase
           .from('journal_entries')
           .insert({
             user_id: user.id,
@@ -87,17 +92,21 @@ export default function DevotionalPage() {
           })
           .select('id')
           .single();
+        if (error) throw error;
         if (inserted) setExistingEntry(inserted.id);
       }
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch {
-      // non-blocking
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to save. Try again.';
+      setSaveError(msg);
     } finally {
       setSaving(false);
     }
   };
+
+  const paragraphs = devotional?.body.split('\n\n').filter(Boolean) ?? [];
 
   if (loading) {
     return (
@@ -139,8 +148,8 @@ export default function DevotionalPage() {
       </div>
 
       <div className="space-y-5 mb-10">
-        {devotional.body.split('\n\n').map((p, i) => (
-          <p key={i} className="text-slate-300 text-[15px] leading-8">{p}</p>
+        {paragraphs.map((p, i) => (
+          <p key={`para-${i}`} className="text-slate-300 text-[15px] leading-8">{p}</p>
         ))}
       </div>
 
@@ -150,15 +159,28 @@ export default function DevotionalPage() {
       </div>
 
       <div className="mb-6">
-        <p className="text-slate-400 text-sm font-semibold mb-3">Write your response</p>
+        <label htmlFor="journal-reflection" className="text-slate-400 text-sm font-semibold block mb-3">
+          Write your response
+        </label>
         <textarea
+          id="journal-reflection"
           value={reflection}
-          onChange={(e) => { setReflection(e.target.value); setSaved(false); }}
+          onChange={(e) => {
+            setReflection(e.target.value);
+            if (saved) setSaved(false);
+            if (saveError) setSaveError('');
+          }}
           rows={5}
           placeholder="What is God saying to you through this today?"
           className="w-full bg-[#1e2d47] border border-[#1e3a6e] text-white rounded-2xl px-4 py-4 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors resize-none leading-7"
         />
       </div>
+
+      {saveError && (
+        <div className="bg-red-900/20 border border-red-700/30 text-red-400 text-sm rounded-xl px-4 py-3 mb-4" role="alert">
+          {saveError}
+        </div>
+      )}
 
       <button
         onClick={handleSave}

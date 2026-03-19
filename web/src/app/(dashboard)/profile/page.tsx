@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Flame, BookOpen, Zap, Users, LogOut, Bell, Lock, Edit2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Flame, BookOpen, Zap, Users, LogOut, Bell, Lock, Edit2, X, CreditCard } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -21,6 +21,7 @@ const SPORT_EMOJI: Record<string, string> = {
   Golf: '⛳',
   Gymnastics: '🤸',
   Hockey: '🏒',
+  Other: '🏅',
   default: '🏅',
 };
 
@@ -50,6 +51,9 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<Stats>({ checkins: 0, devotionals: 0, groups: 0, streak: 0 });
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // Edit modal state
   const [editing, setEditing] = useState(false);
@@ -58,6 +62,9 @@ export default function ProfilePage() {
   const [editSchool, setEditSchool] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -65,6 +72,7 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
+      setUserEmail(user.email ?? null);
 
       const [
         { data: profileData },
@@ -85,19 +93,20 @@ export default function ProfilePage() {
         setEditSchool(profileData.school ?? '');
       }
 
-      // Streak: count consecutive days with prayer_checkin going backward from today
+      // Streak: count consecutive days with check-ins going backward from today
+      // Limit the fetch to 365 rows to avoid unbounded downloads
       let streak = 0;
       if (checkinCount && checkinCount > 0) {
         const { data: checkins } = await supabase
           .from('prayer_checkins')
           .select('created_at')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(365);
 
         if (checkins && checkins.length > 0) {
           const seen = new Set<string>();
           checkins.forEach((c) => {
-            // Use local date to avoid UTC-day mismatch for users in non-UTC timezones
             const day = new Date(c.created_at).toLocaleDateString('en-CA');
             seen.add(day);
           });
@@ -127,7 +136,25 @@ export default function ProfilePage() {
     load();
   }, []);
 
+  // Focus trap: move focus into modal when it opens
+  useEffect(() => {
+    if (editing) {
+      setTimeout(() => closeButtonRef.current?.focus(), 50);
+    }
+  }, [editing]);
+
+  const handleOpenEdit = () => {
+    setSaveError('');
+    setEditing(true);
+  };
+
+  const handleCloseEdit = () => {
+    setEditing(false);
+    editButtonRef.current?.focus();
+  };
+
   const handleSignOut = async () => {
+    setIsSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
@@ -136,14 +163,29 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     if (!userId || !editName.trim() || !editSport) return;
     setSaving(true);
+    setSaveError('');
     const supabase = createClient();
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ name: editName.trim(), sport: editSport, school: editSchool.trim() || null })
       .eq('user_id', userId);
-    setProfile((p) => p ? { ...p, name: editName.trim(), sport: editSport, school: editSchool.trim() || null } : p);
     setSaving(false);
+    if (error) {
+      setSaveError('Failed to save. Try again.');
+      return;
+    }
+    setProfile((p) => p ? { ...p, name: editName.trim(), sport: editSport, school: editSchool.trim() || null } : p);
     setEditing(false);
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      // Silently fail — portal link is a nice-to-have
+    }
   };
 
   const sportEmoji = profile ? (SPORT_EMOJI[profile.sport] ?? SPORT_EMOJI.default) : '🏅';
@@ -165,7 +207,10 @@ export default function ProfilePage() {
       </div>
 
       <div className="flex items-center gap-5 mb-8">
-        <div className="w-20 h-20 rounded-full bg-[#1e3a6e] border-2 border-[#F59E0B] flex items-center justify-center text-4xl flex-shrink-0">
+        <div
+          className="w-20 h-20 rounded-full bg-[#1e3a6e] border-2 border-[#F59E0B] flex items-center justify-center text-4xl flex-shrink-0"
+          aria-hidden="true"
+        >
           {sportEmoji}
         </div>
         <div>
@@ -174,6 +219,9 @@ export default function ProfilePage() {
             {profile?.sport}
             {profile?.school ? ` · ${profile.school}` : ''}
           </p>
+          {userEmail && (
+            <p className="text-slate-600 text-xs mt-1">{userEmail}</p>
+          )}
         </div>
       </div>
 
@@ -188,7 +236,7 @@ export default function ProfilePage() {
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="w-8 h-8 rounded-lg mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: `${stat.color}15` }}>
-                <stat.icon size={14} style={{ color: stat.color }} />
+                <stat.icon size={14} style={{ color: stat.color }} aria-hidden="true" />
               </div>
               <p className="text-white text-2xl font-bold">{stat.value}</p>
               <p className="text-slate-500 text-xs mt-1">{stat.label}</p>
@@ -199,7 +247,7 @@ export default function ProfilePage() {
 
       {stats.streak > 0 && (
         <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-2xl p-4 mb-6 flex items-center gap-3">
-          <Flame size={24} className="text-[#F59E0B] flex-shrink-0" />
+          <Flame size={24} className="text-[#F59E0B] flex-shrink-0" aria-hidden="true" />
           <div>
             <p className="text-[#F59E0B] font-bold text-sm">{stats.streak} day streak</p>
             <p className="text-slate-400 text-xs">Keep showing up. God sees every rep.</p>
@@ -211,15 +259,28 @@ export default function ProfilePage() {
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Account</p>
         <div className="space-y-2">
           <button
-            onClick={() => setEditing(true)}
+            ref={editButtonRef}
+            onClick={handleOpenEdit}
             className="w-full flex items-center justify-between bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-xl px-5 py-4 hover:border-white/20 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <Edit2 size={16} className="text-slate-400" />
+              <Edit2 size={16} className="text-slate-400" aria-hidden="true" />
               <span className="text-white text-sm font-medium">Edit Profile</span>
             </div>
-            <span className="text-slate-600 text-xs">→</span>
+            <span className="text-slate-600 text-xs" aria-hidden="true">&#8594;</span>
           </button>
+
+          <button
+            onClick={handleManageBilling}
+            className="w-full flex items-center justify-between bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-xl px-5 py-4 hover:border-white/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CreditCard size={16} className="text-slate-400" aria-hidden="true" />
+              <span className="text-white text-sm font-medium">Manage Subscription</span>
+            </div>
+            <span className="text-slate-600 text-xs" aria-hidden="true">&#8594;</span>
+          </button>
+
           {[
             { label: 'Notifications', icon: Bell },
             { label: 'Privacy & Safety', icon: Lock },
@@ -227,36 +288,56 @@ export default function ProfilePage() {
             <div
               key={item.label}
               className="w-full flex items-center justify-between bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-xl px-5 py-4"
+              aria-disabled="true"
             >
               <div className="flex items-center gap-3">
-                <item.icon size={16} className="text-slate-600" />
+                <item.icon size={16} className="text-slate-600" aria-hidden="true" />
                 <span className="text-slate-600 text-sm font-medium">{item.label}</span>
               </div>
               <span className="text-[#1e3a6e] text-[10px] font-bold uppercase tracking-widest">Soon</span>
             </div>
           ))}
-          <button onClick={handleSignOut} className="w-full flex items-center gap-3 bg-red-900/20 border border-red-900/30 rounded-xl px-5 py-4 hover:bg-red-900/30 transition-colors">
-            <LogOut size={16} className="text-red-400" />
-            <span className="text-red-400 text-sm font-medium">Sign Out</span>
+
+          <button
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="w-full flex items-center gap-3 bg-red-900/20 border border-red-900/30 rounded-xl px-5 py-4 hover:bg-red-900/30 transition-colors disabled:opacity-60"
+          >
+            <LogOut size={16} className="text-red-400" aria-hidden="true" />
+            <span className="text-red-400 text-sm font-medium">
+              {isSigningOut ? 'Signing out...' : 'Sign Out'}
+            </span>
           </button>
         </div>
       </div>
 
       {/* Edit Profile Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-profile-title"
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseEdit(); }}
+        >
           <div className="bg-[#1e2d47] border border-[#1e3a6e] rounded-3xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white font-bold text-lg">Edit Profile</h2>
-              <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-white transition-colors">
-                <X size={20} />
+              <h2 id="edit-profile-title" className="text-white font-bold text-lg">Edit Profile</h2>
+              <button
+                ref={closeButtonRef}
+                onClick={handleCloseEdit}
+                className="text-slate-500 hover:text-white transition-colors"
+                aria-label="Close edit profile"
+              >
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Full Name</label>
+                <label htmlFor="edit-name" className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Full Name</label>
                 <input
+                  id="edit-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Your name"
@@ -265,13 +346,15 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Sport</label>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2" id="edit-sport-label">Sport</p>
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="edit-sport-label">
                   {SPORTS.map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setEditSport(s)}
+                      role="radio"
+                      aria-checked={editSport === s}
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                         editSport === s
                           ? 'bg-[#F59E0B] border-[#F59E0B] text-[#0F172A]'
@@ -285,8 +368,11 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">School <span className="text-slate-700 font-normal normal-case">optional</span></label>
+                <label htmlFor="edit-school" className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">
+                  School <span className="text-slate-700 font-normal normal-case">optional</span>
+                </label>
                 <input
+                  id="edit-school"
                   value={editSchool}
                   onChange={(e) => setEditSchool(e.target.value)}
                   placeholder="Westlake High School"
@@ -294,9 +380,15 @@ export default function ProfilePage() {
                 />
               </div>
 
+              {saveError && (
+                <p className="text-red-400 text-sm bg-red-900/20 border border-red-900/30 rounded-xl px-4 py-3" role="alert">
+                  {saveError}
+                </p>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => setEditing(false)}
+                  onClick={handleCloseEdit}
                   className="flex-1 py-3 rounded-xl bg-[#0F172A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold"
                 >
                   Cancel

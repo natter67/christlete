@@ -10,16 +10,25 @@ export const metadata: Metadata = {
     'A faith-centered platform for Christian athletes. Daily devotionals, pregame prayer check-ins, and team prayer groups built around the real moments of competition.',
   icons: { icon: '/favicon.svg' },
   openGraph: {
-    title: 'Christlete',
-    description: 'Where faith meets the field.',
+    title: 'Christlete: Faith for the Athlete',
+    description: 'Daily devotionals, pregame prayer, and team groups built for Christian athletes.',
     siteName: 'Christlete',
     url: 'https://christlete.love',
     type: 'website',
+    images: [
+      {
+        url: 'https://christlete.love/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Christlete: Faith for the Athlete',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Christlete: Faith for the Athlete',
-    description: 'Where faith meets the field.',
+    description: 'Daily devotionals, pregame prayer, and team groups built for Christian athletes.',
+    images: ['https://christlete.love/og-image.png'],
   },
 };
 

@@ -20,11 +20,11 @@ function UpgradedBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get('upgraded') !== '1') return null;
   return (
-    <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3">
-      <span className="text-[#F59E0B] text-xl">★</span>
+    <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3" role="status">
+      <span className="text-[#F59E0B] text-xl" aria-hidden="true">&#9733;</span>
       <div>
         <p className="text-[#F59E0B] font-bold text-sm">Welcome to Christlete Elite</p>
-        <p className="text-slate-400 text-xs mt-0.5">Your subscription is active. All Elite features are unlocked.</p>
+        <p className="text-slate-400 text-xs mt-0.5">Your subscription is active. Elite features are being rolled out.</p>
       </div>
     </div>
   );
@@ -45,10 +45,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const supabase = createClient();
+    const dayIndex = new Date().getDay();
 
     async function load() {
-      const dayIndex = new Date().getDay();
-
       const [{ data: devData }, { data: userData }] = await Promise.all([
         supabase
           .from('devotionals')
@@ -78,6 +77,9 @@ export default function DashboardPage() {
     load();
   }, []);
 
+  // Get first non-empty paragraph from body
+  const bodyPreview = devotional?.body.split('\n\n').filter((p) => p.trim())[0] ?? '';
+
   return (
     <div className="pb-24 md:pb-8">
       <Suspense fallback={null}>
@@ -106,14 +108,16 @@ export default function DashboardPage() {
           <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6 hover:border-[#F59E0B]/30 transition-colors">
             <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">Today&apos;s Devotional</p>
             <h2 className="text-white text-xl font-bold mb-3">{devotional.title}</h2>
-            <p className="text-slate-400 text-sm leading-7 mb-4 line-clamp-3">
-              {devotional.body.split('\n\n')[0]}
-            </p>
+            {bodyPreview && (
+              <p className="text-slate-400 text-sm leading-7 mb-4 line-clamp-3">
+                {bodyPreview}
+              </p>
+            )}
             <Link
               href="/devotional"
               className="inline-flex items-center gap-2 text-[#F59E0B] text-sm font-semibold"
             >
-              Read full devotional <ArrowRight size={14} />
+              Read full devotional <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
         </>
@@ -138,8 +142,9 @@ export default function DashboardPage() {
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
               style={{ backgroundColor: `${item.color}15` }}
+              aria-hidden="true"
             >
-              <item.icon size={18} style={{ color: item.color }} />
+              <item.icon size={18} style={{ color: item.color }} aria-hidden="true" />
             </div>
             <p className="text-white font-semibold text-sm mb-1">{item.label}</p>
             <p className="text-slate-500 text-xs">{item.sub}</p>

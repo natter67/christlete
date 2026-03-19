@@ -23,8 +23,6 @@ const TYPE_COLORS: Record<GroupType, string> = {
 };
 
 export default function GroupsPage() {
-  const supabase = createClient();
-
   const [allGroups, setAllGroups] = useState<Group[]>([]);
   const [myGroupIds, setMyGroupIds] = useState<string[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -42,6 +40,7 @@ export default function GroupsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const supabase = createClient();
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
@@ -67,19 +66,36 @@ export default function GroupsPage() {
   const joinGroup = async (groupId: string) => {
     if (!userId) return;
     setMyGroupIds((p) => [...p, groupId]);
+    const supabase = createClient();
     const { error } = await supabase.from('group_members').insert({ group_id: groupId, user_id: userId });
-    if (error) { setMyGroupIds((p) => p.filter((id) => id !== groupId)); }
+    if (error) {
+      setMyGroupIds((p) => p.filter((id) => id !== groupId));
+      setError('Could not join group. Try again.');
+    }
   };
 
   const leaveGroup = async (groupId: string) => {
     if (!userId) return;
+    // Optimistic removal
     setMyGroupIds((p) => p.filter((id) => id !== groupId));
-    await supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', userId);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+    if (error) {
+      // Rollback
+      setMyGroupIds((p) => [...p, groupId]);
+      setError('Could not leave group. Try again.');
+    }
   };
 
   const createGroup = async () => {
     if (!newName.trim() || !userId) return;
     setSaving(true);
+    setError(null);
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('prayer_groups')
       .insert({ name: newName.trim(), type: newType, sport: newSport.trim() || null, description: newDesc.trim() || null, created_by: userId, is_private: false })
@@ -96,12 +112,16 @@ export default function GroupsPage() {
   };
 
   const joinByCode = async () => {
-    if (code.length < 4 || !userId) return;
+    const trimmed = code.trim();
+    if (trimmed.length < 4 || !userId) return;
     setSaving(true);
+    setError(null);
+    const supabase = createClient();
+    // Use exact match (case-insensitive) — not a partial search
     const { data, error } = await supabase
       .from('prayer_groups')
       .select('*')
-      .ilike('invite_code', code.trim())
+      .ilike('invite_code', trimmed)
       .single();
     setSaving(false);
     if (error || !data) { setError('No group found with that code.'); return; }
@@ -126,18 +146,24 @@ export default function GroupsPage() {
       </div>
 
       <div className="flex gap-3 mb-8">
-        <button onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }} className="flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-[#FBBF24] transition-colors">
-          <Plus size={16} /> Create Group
+        <button
+          onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }}
+          className="flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-[#FBBF24] transition-colors"
+        >
+          <Plus size={16} aria-hidden="true" /> Create Group
         </button>
-        <button onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }} className="flex items-center gap-2 bg-[#1e2d47] border border-[#1e3a6e] text-slate-300 font-bold text-sm px-5 py-2.5 rounded-xl hover:border-slate-500 transition-colors">
-          <Hash size={16} /> Join by Code
+        <button
+          onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }}
+          className="flex items-center gap-2 bg-[#1e2d47] border border-[#1e3a6e] text-slate-300 font-bold text-sm px-5 py-2.5 rounded-xl hover:border-slate-500 transition-colors"
+        >
+          <Hash size={16} aria-hidden="true" /> Join by Code
         </button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 bg-red-900/20 border border-red-700/30 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
-          <AlertCircle size={14} /> {error}
-          <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-400">x</button>
+        <div className="flex items-center gap-2 bg-red-900/20 border border-red-700/30 text-red-400 text-sm rounded-xl px-4 py-3 mb-6" role="alert">
+          <AlertCircle size={14} aria-hidden="true" /> {error}
+          <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-400" aria-label="Dismiss error">&times;</button>
         </div>
       )}
 
@@ -146,29 +172,55 @@ export default function GroupsPage() {
           <h3 className="text-white font-bold mb-4">Create a Group</h3>
           <div className="space-y-4">
             <div>
-              <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Group Name</label>
-              <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Westlake JV Soccer" className="w-full bg-[#080E1A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors" />
+              <label htmlFor="new-group-name" className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Group Name</label>
+              <input
+                id="new-group-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="e.g. Westlake JV Soccer"
+                className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
+              />
             </div>
             <div>
-              <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Type</label>
-              <div className="flex gap-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2" id="group-type-label">Type</p>
+              <div className="flex gap-2" role="radiogroup" aria-labelledby="group-type-label">
                 {(['team', 'event', 'school'] as GroupType[]).map((t) => (
-                  <button key={t} onClick={() => setNewType(t)} className={`px-4 py-2 rounded-full text-sm font-semibold border capitalize transition-colors ${newType === t ? 'bg-[#F59E0B] border-[#F59E0B] text-[#080E1A]' : 'bg-[#080E1A] border-[#1e3a6e] text-slate-300'}`}>{t}</button>
+                  <button
+                    key={t}
+                    onClick={() => setNewType(t)}
+                    role="radio"
+                    aria-checked={newType === t}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold border capitalize transition-colors ${newType === t ? 'bg-[#F59E0B] border-[#F59E0B] text-[#080E1A]' : 'bg-[#0F172A] border-[#1e3a6e] text-slate-300'}`}
+                  >
+                    {t}
+                  </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Sport (optional)</label>
-              <input value={newSport} onChange={(e) => setNewSport(e.target.value)} placeholder="Basketball, Soccer, Track..." className="w-full bg-[#080E1A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors" />
+              <label htmlFor="new-group-sport" className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Sport (optional)</label>
+              <input
+                id="new-group-sport"
+                value={newSport}
+                onChange={(e) => setNewSport(e.target.value)}
+                placeholder="Basketball, Soccer, Track..."
+                className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
+              />
             </div>
             <div>
-              <label className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Description (optional)</label>
-              <input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this group for?" className="w-full bg-[#080E1A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors" />
+              <label htmlFor="new-group-desc" className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-2">Description (optional)</label>
+              <input
+                id="new-group-desc"
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="What is this group for?"
+                className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
+              />
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowCreate(false)} className="flex-1 py-3 rounded-xl bg-[#080E1A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
+              <button onClick={() => setShowCreate(false)} className="flex-1 py-3 rounded-xl bg-[#0F172A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
               <button disabled={!newName.trim() || saving} onClick={createGroup} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2">
-                {saving && <Loader2 size={14} className="animate-spin" />} Create
+                {saving && <Loader2 size={14} className="animate-spin" aria-hidden="true" />} Create
               </button>
             </div>
           </div>
@@ -179,11 +231,18 @@ export default function GroupsPage() {
         <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-6 mb-6">
           <h3 className="text-white font-bold mb-1">Join by Invite Code</h3>
           <p className="text-slate-500 text-sm mb-4">Ask your group leader for the invite code.</p>
-          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g. FCA001" className="w-full bg-[#080E1A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm text-center font-bold tracking-[8px] placeholder:tracking-normal placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors mb-4" />
+          <label htmlFor="join-code" className="sr-only">Invite code</label>
+          <input
+            id="join-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="e.g. FCA001"
+            className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm text-center font-bold tracking-[8px] placeholder:tracking-normal placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors mb-4"
+          />
           <div className="flex gap-3">
-            <button onClick={() => setShowJoin(false)} className="flex-1 py-3 rounded-xl bg-[#080E1A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
+            <button onClick={() => setShowJoin(false)} className="flex-1 py-3 rounded-xl bg-[#0F172A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
             <button disabled={!code.trim() || saving} onClick={joinByCode} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2">
-              {saving && <Loader2 size={14} className="animate-spin" />} Join
+              {saving && <Loader2 size={14} className="animate-spin" aria-hidden="true" />} Join
             </button>
           </div>
         </div>
@@ -191,7 +250,7 @@ export default function GroupsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-slate-600" />
+          <Loader2 size={24} className="animate-spin text-slate-600" aria-label="Loading groups" />
         </div>
       ) : (
         <>
@@ -232,11 +291,15 @@ function GroupCard({ group, isMember, onToggle }: { group: Group; isMember: bool
         {group.description && <p className="text-slate-400 text-sm leading-5 line-clamp-2">{group.description}</p>}
         {isMember && (
           <p className="text-slate-600 text-xs mt-2 flex items-center gap-1">
-            <Users size={11} /> Code: <span className="font-mono font-bold">{group.invite_code}</span>
+            <Users size={11} aria-hidden="true" /> Code: <span className="font-mono font-bold">{group.invite_code}</span>
           </p>
         )}
       </div>
-      <button onClick={onToggle} className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isMember ? 'bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'bg-[#1e3a6e] text-slate-300 hover:bg-[#1e3a6e]/80'}`}>
+      <button
+        onClick={onToggle}
+        aria-label={isMember ? `Leave ${group.name}` : `Join ${group.name}`}
+        className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isMember ? 'bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'bg-[#1e3a6e] text-slate-300 hover:bg-[#1e3a6e]/80'}`}
+      >
         {isMember ? 'Joined' : 'Join'}
       </button>
     </div>

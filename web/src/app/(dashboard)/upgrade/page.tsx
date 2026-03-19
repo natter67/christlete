@@ -16,7 +16,7 @@ const ELITE_FEATURES = [
   {
     icon: Users,
     title: 'Unlimited Prayer Groups',
-    body: 'Join or create as many groups as your team needs. Free tier is capped at 2.',
+    body: 'Join or create as many groups as your team needs. Free tier is capped at 1.',
     color: '#3B82F6',
   },
   {
@@ -106,9 +106,10 @@ export default function UpgradePage() {
       </div>
 
       {/* Billing toggle */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-8" role="group" aria-label="Billing cycle">
         <button
           onClick={() => setBilling('monthly')}
+          aria-pressed={billing === 'monthly'}
           className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
             billing === 'monthly'
               ? 'bg-[#1e3a6e] border-[#F59E0B] text-white'
@@ -119,6 +120,7 @@ export default function UpgradePage() {
         </button>
         <button
           onClick={() => setBilling('yearly')}
+          aria-pressed={billing === 'yearly'}
           className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors relative ${
             billing === 'yearly'
               ? 'bg-[#1e3a6e] border-[#F59E0B] text-white'
@@ -137,11 +139,11 @@ export default function UpgradePage() {
           <span className="text-slate-400 text-sm">/{billing === 'monthly' ? 'month' : 'year'}</span>
         </div>
         {billing === 'yearly' && (
-          <p className="text-slate-500 text-xs mb-4">That is $4.17/month. One less fast food order per month.</p>
+          <p className="text-slate-500 text-xs mb-4">That is $4.17/month, billed annually.</p>
         )}
         <p className="text-slate-400 text-sm mb-5">7-day free trial. Cancel any time. No questions.</p>
         {error && (
-          <p className="text-red-400 text-sm mb-4 bg-red-900/20 border border-red-900/30 rounded-xl px-4 py-3">{error}</p>
+          <p className="text-red-400 text-sm mb-4 bg-red-900/20 border border-red-900/30 rounded-xl px-4 py-3" role="alert">{error}</p>
         )}
         <button
           onClick={handleCheckout}
@@ -161,6 +163,7 @@ export default function UpgradePage() {
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: `${f.color}15` }}
+                aria-hidden="true"
               >
                 <f.icon size={18} style={{ color: f.color }} />
               </div>
@@ -183,7 +186,7 @@ export default function UpgradePage() {
         {[
           ['Daily Devotionals', true, true],
           ['Pregame Prayer', true, true],
-          ['Prayer Groups', '2 max', 'Unlimited'],
+          ['Prayer Groups', '1 max', 'Unlimited'],
           ['Journal Entries', true, true],
           ['AI-Personalized Prayer', false, true],
           ['Team Leader Dashboard', false, true],
@@ -194,16 +197,19 @@ export default function UpgradePage() {
           <div key={String(label)} className="grid grid-cols-3 text-sm border-t border-[#1e3a6e]/50">
             <div className="py-4 px-5 text-slate-400">{label}</div>
             <div className="py-4 px-4 border-l border-[#1e3a6e]/50 text-slate-400">
-              {free === true ? '✓' : free === false ? <span className="text-slate-700">—</span> : free}
+              {free === true ? '&#10003;' : free === false ? <span className="text-slate-700">&#8212;</span> : free}
             </div>
             <div className="py-4 px-4 border-l border-[#1e3a6e]/50 text-[#F59E0B] font-medium">
-              {elite === true ? '✓' : elite === false ? <span className="text-slate-700">—</span> : elite}
+              {elite === true ? '&#10003;' : elite === false ? <span className="text-slate-700">&#8212;</span> : elite}
             </div>
           </div>
         ))}
       </div>
 
-      <button onClick={() => router.back()} className="text-slate-500 text-sm hover:text-slate-400 transition-colors">
+      <button
+        onClick={() => router.push('/dashboard')}
+        className="text-slate-500 text-sm hover:text-slate-400 transition-colors"
+      >
         Not right now
       </button>
     </div>

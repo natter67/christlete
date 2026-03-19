@@ -4,7 +4,7 @@ import { ArrowRight, Check } from 'lucide-react';
 const FREE_FEATURES = [
   'Daily athlete devotionals',
   'Pregame prayer check-in',
-  '1 prayer group',
+  '1 prayer group (Free tier)',
   'Streak tracking',
 ];
 
