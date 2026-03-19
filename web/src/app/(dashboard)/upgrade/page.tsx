@@ -115,7 +115,7 @@ export default function UpgradePage() {
               : 'bg-transparent border-[#1e3a6e] text-slate-400 hover:border-slate-600'
           }`}
         >
-          Monthly &mdash; $6.99
+          Monthly - $6.99
         </button>
         <button
           onClick={() => setBilling('yearly')}
@@ -125,7 +125,7 @@ export default function UpgradePage() {
               : 'bg-transparent border-[#1e3a6e] text-slate-400 hover:border-slate-600'
           }`}
         >
-          Yearly &mdash; $49.99
+          Yearly - $49.99
           <span className="absolute -top-2.5 -right-2 bg-[#F59E0B] text-[#0F172A] text-[10px] font-bold px-1.5 py-0.5 rounded-full">SAVE 40%</span>
         </button>
       </div>

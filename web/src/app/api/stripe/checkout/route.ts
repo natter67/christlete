@@ -3,9 +3,18 @@ import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+    httpClient: Stripe.createFetchHttpClient(),
+  });
+
   try {
     const { priceId } = await req.json();
     if (!priceId) {
@@ -25,7 +34,7 @@ export async function POST(req: NextRequest) {
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     let customerId = sub?.stripe_customer_id;
 
@@ -35,7 +44,7 @@ export async function POST(req: NextRequest) {
         .from('profiles')
         .select('name')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const customer = await stripe.customers.create({
         email: user.email,
@@ -69,7 +78,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('Stripe checkout error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Stripe checkout error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

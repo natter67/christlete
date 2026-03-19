@@ -15,6 +15,8 @@ type Step = 'account' | 'profile';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const planParam = searchParams?.get('plan');
   const [step, setStep] = useState<Step>('account');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -51,7 +53,7 @@ export default function SignupPage() {
       setError(error.message);
       setStep('account');
     } else {
-      router.push('/dashboard');
+      router.push(planParam === 'elite' ? '/upgrade' : '/dashboard');
     }
   };
 
@@ -93,7 +95,7 @@ export default function SignupPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    placeholder="Caleb Newton"
+                    placeholder="Your full name"
                     className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
                   />
                 </div>

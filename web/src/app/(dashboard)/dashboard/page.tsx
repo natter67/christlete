@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Zap, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
@@ -14,6 +15,20 @@ type Devotional = {
   scripture_ref: string;
   body: string;
 };
+
+function UpgradedBanner() {
+  const searchParams = useSearchParams();
+  if (searchParams.get('upgraded') !== '1') return null;
+  return (
+    <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3">
+      <span className="text-[#F59E0B] text-xl">★</span>
+      <div>
+        <p className="text-[#F59E0B] font-bold text-sm">Welcome to Christlete Elite</p>
+        <p className="text-slate-400 text-xs mt-0.5">Your subscription is active. All Elite features are unlocked.</p>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const [devotional, setDevotional] = useState<Devotional | null>(null);
@@ -40,7 +55,7 @@ export default function DashboardPage() {
           .select('title, scripture, scripture_ref, body')
           .eq('day_index', dayIndex)
           .eq('published', true)
-          .single(),
+          .maybeSingle(),
         supabase.auth.getUser(),
       ]);
 
@@ -51,7 +66,7 @@ export default function DashboardPage() {
           .from('profiles')
           .select('name')
           .eq('user_id', userData.user.id)
-          .single();
+          .maybeSingle();
         if (profile?.name) {
           setUserName(profile.name.split(' ')[0]);
         }
@@ -65,6 +80,10 @@ export default function DashboardPage() {
 
   return (
     <div className="pb-24 md:pb-8">
+      <Suspense fallback={null}>
+        <UpgradedBanner />
+      </Suspense>
+
       <div className="mb-8">
         <p className="text-slate-500 text-sm">{dayName}, {dateStr}</p>
         <h1 className="text-white text-3xl font-bold mt-1">{greeting}, {userName}.</h1>

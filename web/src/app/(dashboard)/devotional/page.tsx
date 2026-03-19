@@ -32,7 +32,7 @@ export default function DevotionalPage() {
           .select('id, title, scripture, scripture_ref, body, reflection_prompt')
           .eq('day_index', dayIndex)
           .eq('published', true)
-          .single(),
+          .maybeSingle(),
         supabase.auth.getUser(),
       ]);
 
@@ -47,7 +47,7 @@ export default function DevotionalPage() {
             .eq('user_id', user.id)
             .eq('devotional_id', devData.id)
             .gte('created_at', `${today}T00:00:00`)
-            .single();
+            .maybeSingle();
 
           if (entry) {
             setReflection(entry.body);

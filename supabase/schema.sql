@@ -175,6 +175,71 @@ create policy "Users can update their own requests"
   using (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────
+-- JOURNAL ENTRIES
+-- ─────────────────────────────────────────
+create table if not exists public.journal_entries (
+  id             uuid primary key default uuid_generate_v4(),
+  user_id        uuid references auth.users(id) on delete cascade not null,
+  devotional_id  uuid references public.devotionals(id) on delete set null,
+  body           text not null,
+  created_at     timestamptz default now() not null
+);
+
+alter table public.journal_entries enable row level security;
+
+create policy "Users manage their own journal entries"
+  on public.journal_entries for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────
+-- SUBSCRIPTIONS
+-- ─────────────────────────────────────────
+create table if not exists public.subscriptions (
+  id                     uuid primary key default uuid_generate_v4(),
+  user_id                uuid references auth.users(id) on delete cascade not null unique,
+  stripe_customer_id     text,
+  stripe_subscription_id text,
+  plan                   text default 'free' check (plan in ('free', 'elite')),
+  status                 text default 'active',
+  current_period_end     timestamptz,
+  created_at             timestamptz default now() not null,
+  updated_at             timestamptz default now() not null
+);
+
+alter table public.subscriptions enable row level security;
+
+create policy "Users can read their own subscription"
+  on public.subscriptions for select
+  using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────
+-- PROFILE AUTO-CREATION TRIGGER
+-- ─────────────────────────────────────────
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (user_id, name, sport, school)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'name', ''),
+    coalesce(new.raw_user_meta_data->>'sport', 'Other'),
+    new.raw_user_meta_data->>'school'
+  )
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- ─────────────────────────────────────────
 -- DEVOTIONAL SEEDS (Mon–Sun)
 -- ─────────────────────────────────────────
 insert into public.devotionals (title, scripture, scripture_ref, body, reflection_prompt, sport_tags, day_index) values

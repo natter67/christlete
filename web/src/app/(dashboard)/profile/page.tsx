@@ -56,7 +56,7 @@ export default function ProfilePage() {
         { count: journalCount },
         { count: groupCount },
       ] = await Promise.all([
-        supabase.from('profiles').select('name, sport, school, struggles').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('name, sport, school, struggles').eq('user_id', user.id).maybeSingle(),
         supabase.from('prayer_checkins').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('journal_entries').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
