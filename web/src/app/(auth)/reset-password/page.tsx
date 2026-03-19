@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
@@ -13,6 +13,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const sessionReadyRef = useRef(false);
 
   useEffect(() => {
     // Supabase puts the recovery token in the URL hash; the client SDK handles it automatically
@@ -20,10 +21,22 @@ export default function ResetPasswordPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true);
+        sessionReadyRef.current = true;
       }
     });
-    return () => subscription.unsubscribe();
-  }, []);
+
+    // If no recovery session arrives within 20s, redirect to forgot-password
+    const timeout = setTimeout(() => {
+      if (!sessionReadyRef.current) {
+        router.push('/forgot-password');
+      }
+    }, 20000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +61,8 @@ export default function ResetPasswordPage() {
       setError(error.message);
     } else {
       setDone(true);
-      setTimeout(() => router.push('/dashboard'), 2000);
+      const redirect = setTimeout(() => router.push('/dashboard'), 2000);
+      return () => clearTimeout(redirect);
     }
   };
 

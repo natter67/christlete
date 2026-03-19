@@ -64,15 +64,28 @@ export default function GroupsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const joinGroup = async (groupId: string) => {
-    if (!userId) return;
+  // Close open panels on Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setShowCreate(false);
+      setShowJoin(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const joinGroup = async (groupId: string): Promise<boolean> => {
+    if (!userId) return false;
     setMyGroupIds((p) => [...p, groupId]);
     const supabase = createClient();
     const { error } = await supabase.from('group_members').insert({ group_id: groupId, user_id: userId });
     if (error) {
       setMyGroupIds((p) => p.filter((id) => id !== groupId));
       setError('Could not join group. Try again.');
+      return false;
     }
+    return true;
   };
 
   const leaveGroup = async (groupId: string) => {
@@ -82,6 +95,8 @@ export default function GroupsPage() {
       setError('You created this group. Delete it from settings rather than leaving it.');
       return;
     }
+    const confirmed = window.confirm(`Leave "${group?.name}"? You can rejoin later.`);
+    if (!confirmed) return;
     // Optimistic removal
     setMyGroupIds((p) => p.filter((id) => id !== groupId));
     const supabase = createClient();
@@ -131,10 +146,14 @@ export default function GroupsPage() {
       .maybeSingle();
     setSaving(false);
     if (error || !data) { setError('No group found with that code.'); return; }
-    if (!myGroupIds.includes(data.id)) {
-      setAllGroups((p) => p.find((g) => g.id === data.id) ? p : [data, ...p]);
-      await joinGroup(data.id);
+    if (myGroupIds.includes(data.id)) {
+      setError('You are already a member of that group.');
+      setSaving(false);
+      return;
     }
+    setAllGroups((p) => p.find((g) => g.id === data.id) ? p : [data, ...p]);
+    const joined = await joinGroup(data.id);
+    if (!joined) return;
     setShowJoin(false);
     setCode('');
   };

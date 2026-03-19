@@ -63,7 +63,7 @@ export function NavLinks({ variant }: { variant: 'sidebar' | 'mobile' }) {
               }`}
             >
               <item.icon size={20} aria-hidden="true" />
-              <span className="text-[10px] font-semibold" aria-hidden="true">{item.label}</span>
+              <span className="text-[11px] font-semibold" aria-hidden="true">{item.label}</span>
             </Link>
           );
         })}

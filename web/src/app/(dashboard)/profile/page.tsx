@@ -35,7 +35,6 @@ type Profile = {
   name: string;
   sport: string;
   school: string | null;
-  struggles: string[];
 };
 
 type Stats = {
@@ -81,7 +80,7 @@ export default function ProfilePage() {
         { count: journalCount },
         { count: groupCount },
       ] = await Promise.all([
-        supabase.from('profiles').select('name, sport, school, struggles').eq('user_id', user.id).maybeSingle(),
+        supabase.from('profiles').select('name, sport, school').eq('user_id', user.id).maybeSingle(),
         supabase.from('prayer_checkins').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('journal_entries').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
@@ -112,9 +111,11 @@ export default function ProfilePage() {
             seen.add(day);
           });
 
-          const now = new Date();
+          // Use calendar-date arithmetic (DST-safe) rather than millisecond offsets
+          const today = new Date();
           for (let i = 0; i < 365; i++) {
-            const key = new Date(now.getTime() - i * 86400000).toLocaleDateString('en-CA');
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+            const key = d.toLocaleDateString('en-CA');
             if (seen.has(key)) {
               streak++;
             } else {
@@ -137,11 +138,17 @@ export default function ProfilePage() {
     load();
   }, []);
 
-  // Focus trap: move focus into modal when it opens
+  // Focus trap: move focus into modal when it opens; Escape closes it
   useEffect(() => {
-    if (editing) {
-      setTimeout(() => closeButtonRef.current?.focus(), 50);
-    }
+    if (!editing) return;
+    const raf = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleCloseEdit(); };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', onKey);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);
 
   const handleOpenEdit = () => {

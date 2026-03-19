@@ -1,16 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
-export default function LoginPage() {
+const URL_ERROR_MESSAGES: Record<string, string> = {
+  confirmation_failed: 'Email confirmation failed. Please try signing in or request a new link.',
+  missing_code: 'That confirmation link appears invalid. Please request a new one.',
+};
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlError = searchParams.get('error');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const displayError = error || (urlError ? (URL_ERROR_MESSAGES[urlError] ?? 'Something went wrong. Please try again.') : '');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +30,11 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(
+        error.message === 'Invalid login credentials'
+          ? 'Incorrect email or password.'
+          : error.message
+      );
     } else {
       router.push('/dashboard');
     }
@@ -40,9 +54,17 @@ export default function LoginPage() {
           <h1 className="text-white text-2xl font-bold mb-1">Welcome back</h1>
           <p className="text-slate-400 text-sm mb-8">Sign in to continue your faith journey.</p>
 
-          {error && (
+          {displayError && (
             <div className="bg-red-900/30 border border-red-700/50 text-red-400 text-sm rounded-xl px-4 py-3 mb-6" role="alert">
-              {error}
+              {displayError}
+              {urlError === 'confirmation_failed' && (
+                <span>
+                  {' '}
+                  <Link href="/forgot-password" className="underline font-semibold">
+                    Request a new link
+                  </Link>
+                </span>
+              )}
             </div>
           )}
 
@@ -102,5 +124,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

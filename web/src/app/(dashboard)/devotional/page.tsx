@@ -20,6 +20,7 @@ export default function DevotionalPage() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [existingEntry, setExistingEntry] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -36,6 +37,8 @@ export default function DevotionalPage() {
           .maybeSingle(),
         supabase.auth.getUser(),
       ]);
+
+      if (user) setUserId(user.id);
 
       if (devData) {
         setDevotional(devData);
@@ -70,14 +73,13 @@ export default function DevotionalPage() {
   }, []);
 
   const handleSave = async () => {
-    if (!reflection.trim() || !devotional) return;
+    if (!reflection.trim() || !devotional || !userId) return;
     setSaving(true);
     setSaveError('');
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // userId already available from component state
 
       if (existingEntry) {
         const { error } = await supabase
@@ -89,7 +91,7 @@ export default function DevotionalPage() {
         const { data: inserted, error } = await supabase
           .from('journal_entries')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             devotional_id: devotional.id,
             body: reflection,
           })
@@ -174,6 +176,7 @@ export default function DevotionalPage() {
             if (saveError) setSaveError('');
           }}
           rows={5}
+          maxLength={1000}
           placeholder="What is God saying to you through this today?"
           className="w-full bg-[#1e2d47] border border-[#1e3a6e] text-white rounded-2xl px-4 py-4 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors resize-none leading-7"
         />

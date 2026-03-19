@@ -230,6 +230,14 @@ export default function PrayerPage() {
                 <span className="text-green-400 font-bold text-sm">Check-in complete. Go compete.</span>
               </div>
             )}
+            {!done && (
+              <button
+                onClick={() => setStep('carrying')}
+                className="w-full py-3 text-slate-600 text-sm hover:text-slate-500 transition-colors"
+              >
+                Back
+              </button>
+            )}
             <button onClick={reset} className="w-full py-3 text-slate-500 text-sm hover:text-slate-400">
               Start over
             </button>

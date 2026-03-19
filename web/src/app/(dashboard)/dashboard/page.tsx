@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    const dayIndex = new Date().getDay();
+    const dayIndex = now.getDay();
 
     async function load() {
       const [{ data: devData }, { data: userData }] = await Promise.all([
@@ -59,11 +59,12 @@ export default function DashboardPage() {
       if (devData) setDevotional(devData);
 
       if (userData.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('name')
           .eq('user_id', userData.user.id)
           .maybeSingle();
+        if (profileError) console.error('Failed to load profile:', profileError.message);
         if (profile?.name) {
           setUserName(profile.name.split(' ')[0]);
         }
@@ -113,7 +114,7 @@ export default function DashboardPage() {
             )}
             <Link
               href="/devotional"
-              className="inline-flex items-center gap-2 text-[#F59E0B] text-sm font-semibold"
+              className="inline-flex items-center gap-2 text-[#F59E0B] text-sm font-semibold hover:underline"
             >
               Read full devotional <ArrowRight size={14} aria-hidden="true" />
             </Link>

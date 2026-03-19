@@ -5,7 +5,12 @@ import { createAdminClient } from '@/lib/supabase-admin';
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('Stripe webhook not configured — missing env vars');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16',
     httpClient: Stripe.createFetchHttpClient(),
   });
@@ -18,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -34,10 +39,15 @@ export async function POST(req: NextRequest) {
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
 
+      if (!subscriptionId) {
+        console.error('checkout.session.completed: missing subscriptionId', { sessionId: session.id });
+        break;
+      }
+
       // Prefer customer-level metadata; fall back to session metadata as a safety net
-      const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+      const customer = await stripe.customers.retrieve(customerId);
       const userId =
-        customer.metadata?.supabase_user_id ??
+        (!customer.deleted ? customer.metadata?.supabase_user_id : undefined) ??
         session.metadata?.supabase_user_id;
 
       if (!userId) {
@@ -109,11 +119,42 @@ export async function POST(req: NextRequest) {
         stripe_subscription_id: subscription.id,
         plan: 'free',
         status: 'canceled',
+        current_period_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
 
       if (upsertError) {
         console.error('customer.subscription.deleted: DB upsert failed', upsertError.message);
+        return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
+      }
+
+      break;
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = invoice.subscription as string | null;
+      if (!subscriptionId) break;
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const userId = subscription.metadata?.supabase_user_id;
+
+      if (!userId) {
+        console.error('invoice.payment_failed: no supabase_user_id in subscription metadata', { subscriptionId });
+        break;
+      }
+
+      const { error: upsertError } = await admin.from('subscriptions').upsert({
+        user_id: userId,
+        stripe_customer_id: subscription.customer as string,
+        stripe_subscription_id: subscriptionId,
+        plan: 'free',
+        status: subscription.status,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+
+      if (upsertError) {
+        console.error('invoice.payment_failed: DB upsert failed', upsertError.message);
         return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
       }
 

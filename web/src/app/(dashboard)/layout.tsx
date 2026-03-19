@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </a>
 
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-60 border-r border-white/5 fixed h-full">
+      <aside className="hidden md:flex flex-col w-60 border-r border-white/5 fixed h-full" aria-label="Sidebar navigation">
         <div className="px-6 h-16 flex items-center border-b border-white/5">
           <Link href="/dashboard">
             <span className="text-[#F59E0B] font-bold text-xl tracking-tight">Christlete</span>
@@ -40,6 +40,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile header */}
         <div className="md:hidden h-14 border-b border-white/5 flex items-center justify-between px-5">
           <span className="text-[#F59E0B] font-bold text-lg">Christlete</span>
+          <Link
+            href="/upgrade"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold"
+          >
+            <Star size={12} aria-hidden="true" />
+            Go Elite
+          </Link>
         </div>
 
         <div id="main-content" className="p-6 md:p-8 max-w-3xl">{children}</div>
