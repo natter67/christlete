@@ -197,10 +197,10 @@ export default function UpgradePage() {
           <div key={String(label)} className="grid grid-cols-3 text-sm border-t border-[#1e3a6e]/50">
             <div className="py-4 px-5 text-slate-400">{label}</div>
             <div className="py-4 px-4 border-l border-[#1e3a6e]/50 text-slate-400">
-              {free === true ? '&#10003;' : free === false ? <span className="text-slate-700">&#8212;</span> : free}
+              {free === true ? '✓' : free === false ? <span className="text-slate-700">—</span> : free}
             </div>
             <div className="py-4 px-4 border-l border-[#1e3a6e]/50 text-[#F59E0B] font-medium">
-              {elite === true ? '&#10003;' : elite === false ? <span className="text-slate-700">&#8212;</span> : elite}
+              {elite === true ? '✓' : elite === false ? <span className="text-slate-700">—</span> : elite}
             </div>
           </div>
         ))}
