@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span className="text-[#F59E0B] font-bold text-xl tracking-tight">Christlete</span>
           </Link>
         </div>
-        <NavLinks />
+        <NavLinks variant="sidebar" />
         <div className="px-3 py-4 border-t border-white/5 space-y-1">
           <Link
             href="/upgrade"
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="p-6 md:p-8 max-w-3xl">{children}</div>
 
-        <NavLinks />
+        <NavLinks variant="mobile" />
       </main>
     </div>
   );

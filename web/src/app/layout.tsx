@@ -5,13 +5,21 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Christlete — Faith for the Athlete',
+  title: 'Christlete: Faith for the Athlete',
   description:
     'A faith-centered platform for Christian athletes. Daily devotionals, pregame prayer check-ins, and team prayer groups built around the real moments of competition.',
+  icons: { icon: '/favicon.svg' },
   openGraph: {
     title: 'Christlete',
     description: 'Where faith meets the field.',
+    siteName: 'Christlete',
+    url: 'https://christlete.love',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Christlete: Faith for the Athlete',
+    description: 'Where faith meets the field.',
   },
 };
 

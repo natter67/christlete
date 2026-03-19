@@ -17,8 +17,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const { priceId } = await req.json();
-    if (!priceId) {
-      return NextResponse.json({ error: 'Missing priceId' }, { status: 400 });
+    const allowedPriceIds = [
+      process.env.STRIPE_PRICE_MONTHLY,
+      process.env.STRIPE_PRICE_YEARLY,
+    ].filter(Boolean);
+
+    if (!priceId || (allowedPriceIds.length > 0 && !allowedPriceIds.includes(priceId))) {
+      return NextResponse.json({ error: 'Invalid priceId' }, { status: 400 });
     }
 
     const supabase = await createClient();

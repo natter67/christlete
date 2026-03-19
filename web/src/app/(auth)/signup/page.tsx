@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
 const SPORTS = [
@@ -13,10 +14,11 @@ const SPORTS = [
 
 type Step = 'account' | 'profile';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const planParam = searchParams?.get('plan');
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get('plan');
+
   const [step, setStep] = useState<Step>('account');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -60,7 +62,6 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-block">
             <span className="text-[#F59E0B] font-bold text-2xl tracking-tight">Christlete</span>
@@ -68,13 +69,11 @@ export default function SignupPage() {
           <p className="text-slate-500 text-sm mt-2">Your faith journey starts here.</p>
         </div>
 
-        {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
           <div className="flex-1 h-1 rounded-full bg-[#F59E0B]" />
           <div className={`flex-1 h-1 rounded-full transition-colors ${step === 'profile' ? 'bg-[#F59E0B]' : 'bg-[#1e3a6e]'}`} />
         </div>
 
-        {/* Card */}
         <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-3xl p-8">
           {step === 'account' ? (
             <>
@@ -135,10 +134,10 @@ export default function SignupPage() {
                 onClick={() => setStep('account')}
                 className="text-slate-400 text-sm mb-6 hover:text-white transition-colors"
               >
-                ← Back
+                Back
               </button>
               <h1 className="text-white text-2xl font-bold mb-1">Your sport</h1>
-              <p className="text-slate-400 text-sm mb-8">Step 2 of 2 — We'll tailor your experience.</p>
+              <p className="text-slate-400 text-sm mb-8">Step 2 of 2 — We&apos;ll tailor your experience.</p>
 
               {error && (
                 <div className="bg-red-900/30 border border-red-700/50 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
@@ -200,5 +199,13 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

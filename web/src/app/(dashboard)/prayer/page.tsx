@@ -3,32 +3,44 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase';
 
-type Feeling = { id: string; label: string; emoji: string; prayer: string };
+type Feeling = {
+  id: string;
+  label: string;
+  emoji: string;
+  prayer: string;
+  scripture: { text: string; ref: string };
+};
 
 const FEELINGS: Feeling[] = [
   {
     id: 'anxious', label: 'Anxious', emoji: '😰',
     prayer: "Lord, I come to You with anxiety in my chest and uncertainty in my mind. You said not to be anxious about anything, but to bring everything to You in prayer. So here I am. Still my heart before this moment. Let Your peace — the kind that doesn't make sense — guard my mind right now. I choose to trust You with the outcome. Amen.",
+    scripture: { text: "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.", ref: "Philippians 4:6" },
   },
   {
     id: 'confident', label: 'Confident', emoji: '💪',
     prayer: "Father, I walk into this competition with confidence — not in my own ability, but in what You've placed in me. Every gift I have comes from You. Let me use it with excellence and humility. Keep me from pride. Let me compete in a way that honors You, win or lose. Amen.",
+    scripture: { text: "I can do all this through him who gives me strength.", ref: "Philippians 4:13" },
   },
   {
     id: 'tired', label: 'Tired', emoji: '😔',
     prayer: "God, I am tired. My body is drained and my mind feels heavy. But Your Word says You give strength to the weary. I'm asking for that right now — not just physical energy, but the kind that carries me through. You've seen every rep, every early morning. Be present with me in this moment. Amen.",
+    scripture: { text: "But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.", ref: "Isaiah 40:31" },
   },
   {
     id: 'grateful', label: 'Grateful', emoji: '🙏',
     prayer: "God, I'm grateful today. Grateful for a body that can compete, for teammates beside me, and for the opportunity to do what I love. Before anything else happens today, I want to say thank You. Let me play with gratitude in every step. You are the reason I compete. Amen.",
+    scripture: { text: "Give thanks in all circumstances; for this is God's will for you in Christ Jesus.", ref: "1 Thessalonians 5:18" },
   },
   {
     id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊',
     prayer: "Lord, there is too much going on — in the game, in my life, in my head. I feel like I'm underwater. But You are the God who walks on water. I reach for You. Carry what I can't carry. Clear the noise. Help me take one breath, one rep, one play at a time, trusting You with the rest. Amen.",
+    scripture: { text: "Come to me, all you who are weary and burdened, and I will give you rest.", ref: "Matthew 11:28" },
   },
   {
     id: 'focused', label: 'Focused', emoji: '🎯',
     prayer: "Father, I am locked in. My preparation is done. My mind is clear. As I step into competition, keep my focus sharp but my heart humble. Remind me that this ability is a gift, and I am using it for something bigger than a scoreboard. Let me be an example today. Amen.",
+    scripture: { text: "Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.", ref: "Colossians 3:23" },
   },
 ];
 
@@ -82,7 +94,6 @@ export default function PrayerPage() {
         )}
       </div>
 
-      {/* Step: Feeling */}
       {step === 'feeling' && (
         <>
           <div className="flex flex-wrap gap-3 mb-8">
@@ -110,7 +121,6 @@ export default function PrayerPage() {
         </>
       )}
 
-      {/* Step: Carrying */}
       {step === 'carrying' && (
         <>
           <div className="flex items-center gap-2 bg-[#1e2d47] rounded-xl px-4 py-3 border border-[#1e3a6e] mb-5">
@@ -147,7 +157,6 @@ export default function PrayerPage() {
         </>
       )}
 
-      {/* Step: Prayer */}
       {step === 'prayer' && (
         <>
           {selected && (
@@ -169,13 +178,15 @@ export default function PrayerPage() {
             </div>
           )}
 
-          <div className="bg-[#1e2d47] border border-[#1e3a6e] rounded-2xl p-5 mb-6">
-            <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">A Word for Today</p>
-            <p className="text-slate-300 text-sm italic leading-6">
-              &ldquo;Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.&rdquo;
-            </p>
-            <p className="text-slate-500 text-xs mt-2 font-bold">Philippians 4:6</p>
-          </div>
+          {selected?.scripture && (
+            <div className="bg-[#1e2d47] border border-[#1e3a6e] rounded-2xl p-5 mb-6">
+              <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-2">A Word for Today</p>
+              <p className="text-slate-300 text-sm italic leading-6">
+                &ldquo;{selected.scripture.text}&rdquo;
+              </p>
+              <p className="text-slate-500 text-xs mt-2 font-bold">{selected.scripture.ref}</p>
+            </div>
+          )}
 
           <div className="space-y-3">
             {!done ? (

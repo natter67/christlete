@@ -230,9 +230,11 @@ function GroupCard({ group, isMember, onToggle }: { group: Group; isMember: bool
         </div>
         <h3 className="text-white font-bold text-base mb-1 truncate">{group.name}</h3>
         {group.description && <p className="text-slate-400 text-sm leading-5 line-clamp-2">{group.description}</p>}
-        <p className="text-slate-600 text-xs mt-2 flex items-center gap-1">
-          <Users size={11} /> Code: <span className="font-mono font-bold">{group.invite_code}</span>
-        </p>
+        {isMember && (
+          <p className="text-slate-600 text-xs mt-2 flex items-center gap-1">
+            <Users size={11} /> Code: <span className="font-mono font-bold">{group.invite_code}</span>
+          </p>
+        )}
       </div>
       <button onClick={onToggle} className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isMember ? 'bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'bg-[#1e3a6e] text-slate-300 hover:bg-[#1e3a6e]/80'}`}>
         {isMember ? 'Joined' : 'Join'}

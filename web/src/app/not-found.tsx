@@ -1,0 +1,24 @@
+import Link from 'next/link';
+
+export default function NotFound() {
+  return (
+    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-6">
+      <div className="text-center max-w-md">
+        <Link href="/" className="inline-block mb-12">
+          <span className="text-[#F59E0B] font-bold text-2xl tracking-tight">Christlete</span>
+        </Link>
+        <p className="text-[#F59E0B] text-xs font-bold uppercase tracking-widest mb-4">404</p>
+        <h1 className="text-white text-4xl font-black mb-4">Page not found.</h1>
+        <p className="text-slate-400 text-base leading-7 mb-10">
+          Even detours have a purpose. Whatever you were looking for, it is not here.
+        </p>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#0F172A] font-bold text-sm px-6 py-3.5 rounded-xl hover:bg-[#FBBF24] transition-colors"
+        >
+          Go back to your dashboard
+        </Link>
+      </div>
+    </div>
+  );
+}

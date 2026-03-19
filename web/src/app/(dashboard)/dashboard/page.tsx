@@ -149,7 +149,7 @@ export default function DashboardPage() {
 
       <div className="bg-[#0a1020] border border-[#1e3a6e] rounded-2xl p-6">
         <p className="text-slate-400 text-sm italic leading-7 text-center mb-3">
-          &ldquo;Run in such a way as to get the prize. Everyone who competes goes into strict training they do it to get a crown that will last forever.&rdquo;
+          &ldquo;Run in such a way as to get the prize. Everyone who competes goes into strict training; they do it to get a crown that will not last, but we do it to get a crown that will last forever.&rdquo;
         </p>
         <p className="text-[#F59E0B] text-xs font-bold text-center">1 Corinthians 9:24-25</p>
       </div>
