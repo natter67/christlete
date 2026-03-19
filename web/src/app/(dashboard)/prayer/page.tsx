@@ -191,6 +191,7 @@ export default function PrayerPage() {
             value={carrying}
             onChange={(e) => setCarrying(e.target.value)}
             rows={5}
+            maxLength={500}
             placeholder="What's on your mind going into this?"
             className="w-full bg-[#1e2d47] border border-[#1e3a6e] text-white rounded-2xl px-4 py-4 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors resize-none leading-7 mb-5"
           />
@@ -236,7 +237,7 @@ export default function PrayerPage() {
             <button
               onClick={generateAiPrayer}
               disabled={aiLoading}
-              className="flex items-center gap-2 text-slate-400 text-xs font-semibold hover:text-white transition-colors mb-6 disabled:opacity-50"
+              className="flex items-center gap-2 text-slate-400 text-xs font-semibold hover:text-white transition-colors mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span aria-hidden="true">✦</span>
               {aiLoading ? 'Personalizing...' : 'Personalize this prayer for me'}
@@ -274,7 +275,7 @@ export default function PrayerPage() {
               <button
                 onClick={handlePrayed}
                 disabled={saving}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors disabled:opacity-60"
+                className="w-full py-3.5 rounded-xl font-bold text-sm bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {saving ? 'Saving...' : 'I Prayed This'}
               </button>

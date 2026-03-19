@@ -290,7 +290,7 @@ export default function GroupsPage() {
                 <p className="text-slate-500 text-sm">You have not joined any groups yet.</p>
               </div>
             ) : (
-              myGroups.map((g) => <GroupCard key={g.id} group={g} isMember onToggle={() => leaveGroup(g.id)} />)
+              myGroups.map((g) => <GroupCard key={g.id} group={g} isMember disabled={saving} onToggle={() => leaveGroup(g.id)} />)
             )}
           </div>
 
@@ -298,7 +298,7 @@ export default function GroupsPage() {
             <>
               <h2 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Discover</h2>
               <div className="space-y-3">
-                {discover.map((g) => <GroupCard key={g.id} group={g} isMember={false} onToggle={() => joinGroup(g.id)} />)}
+                {discover.map((g) => <GroupCard key={g.id} group={g} isMember={false} disabled={saving} onToggle={() => joinGroup(g.id)} />)}
               </div>
             </>
           )}
@@ -308,7 +308,7 @@ export default function GroupsPage() {
   );
 }
 
-function GroupCard({ group, isMember, onToggle }: { group: Group; isMember: boolean; onToggle: () => void }) {
+function GroupCard({ group, isMember, disabled, onToggle }: { group: Group; isMember: boolean; disabled?: boolean; onToggle: () => void }) {
   return (
     <div className="bg-[#1e2d47]/60 border border-[#1e3a6e] rounded-2xl p-5 flex items-start justify-between hover:border-white/20 transition-colors">
       <div className="flex-1 mr-4 min-w-0">
@@ -326,8 +326,9 @@ function GroupCard({ group, isMember, onToggle }: { group: Group; isMember: bool
       </div>
       <button
         onClick={onToggle}
+        disabled={disabled}
         aria-label={isMember ? `Leave ${group.name}` : `Join ${group.name}`}
-        className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isMember ? 'bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'bg-[#1e3a6e] text-slate-300 hover:bg-[#1e3a6e]/80'}`}
+        className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isMember ? 'bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'bg-[#1e3a6e] text-slate-300 hover:bg-[#1e3a6e]/80'}`}
       >
         {isMember ? 'Joined' : 'Join'}
       </button>

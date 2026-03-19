@@ -358,6 +358,7 @@ export default function ProfilePage() {
                   id="edit-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  maxLength={80}
                   placeholder="Your name"
                   className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
                 />
@@ -393,6 +394,7 @@ export default function ProfilePage() {
                   id="edit-school"
                   value={editSchool}
                   onChange={(e) => setEditSchool(e.target.value)}
+                  maxLength={80}
                   placeholder="Westlake High School"
                   className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
                 />

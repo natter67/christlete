@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Zap, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
@@ -16,7 +16,14 @@ type Devotional = {
 
 function UpgradedBanner() {
   const searchParams = useSearchParams();
-  if (searchParams.get('upgraded') !== '1') return null;
+  const router = useRouter();
+  const upgraded = searchParams.get('upgraded') === '1';
+
+  useEffect(() => {
+    if (upgraded) router.replace('/dashboard');
+  }, [upgraded, router]);
+
+  if (!upgraded) return null;
   return (
     <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3" role="status">
       <span className="text-[#F59E0B] text-xl" aria-hidden="true">&#9733;</span>

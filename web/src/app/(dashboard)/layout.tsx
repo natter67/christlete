@@ -26,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             href="/upgrade"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/20 transition-colors text-sm font-semibold"
           >
-            <Star size={16} />
+            <Star size={16} aria-hidden="true" />
             Go Elite
           </Link>
           <p className="text-slate-700 text-[11px] italic px-3 pt-2">
