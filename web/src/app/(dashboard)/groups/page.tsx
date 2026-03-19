@@ -13,6 +13,7 @@ interface Group {
   sport: string | null;
   description: string | null;
   invite_code: string;
+  created_by: string | null;
   member_count?: number;
 }
 
@@ -76,6 +77,11 @@ export default function GroupsPage() {
 
   const leaveGroup = async (groupId: string) => {
     if (!userId) return;
+    const group = allGroups.find((g) => g.id === groupId);
+    if (group?.created_by === userId) {
+      setError('You created this group. Delete it from settings rather than leaving it.');
+      return;
+    }
     // Optimistic removal
     setMyGroupIds((p) => p.filter((id) => id !== groupId));
     const supabase = createClient();
@@ -122,7 +128,7 @@ export default function GroupsPage() {
       .from('prayer_groups')
       .select('*')
       .ilike('invite_code', trimmed)
-      .single();
+      .maybeSingle();
     setSaving(false);
     if (error || !data) { setError('No group found with that code.'); return; }
     if (!myGroupIds.includes(data.id)) {
@@ -237,6 +243,7 @@ export default function GroupsPage() {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="e.g. FCA001"
+            maxLength={20}
             className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm text-center font-bold tracking-[8px] placeholder:tracking-normal placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors mb-4"
           />
           <div className="flex gap-3">

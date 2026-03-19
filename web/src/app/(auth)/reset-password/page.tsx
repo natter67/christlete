@@ -17,16 +17,18 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     // Supabase puts the recovery token in the URL hash; the client SDK handles it automatically
     const supabase = createClient();
-    supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true);
       }
     });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!sessionReady) return;
 
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
@@ -67,7 +69,7 @@ export default function ResetPasswordPage() {
                 className="w-14 h-14 rounded-full bg-green-900/30 border border-green-700/30 flex items-center justify-center mx-auto mb-5"
                 aria-hidden="true"
               >
-                <span className="text-green-400 text-2xl">&#10003;</span>
+                <span className="text-green-400 text-2xl">✓</span>
               </div>
               <h1 className="text-white text-2xl font-bold mb-2">Password updated</h1>
               <p className="text-slate-400 text-sm">Taking you to your dashboard...</p>

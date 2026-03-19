@@ -32,7 +32,7 @@ export async function POST() {
       return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://christlete.vercel.app';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://christlete.love';
 
     const session = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id,

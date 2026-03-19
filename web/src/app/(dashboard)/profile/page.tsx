@@ -54,6 +54,7 @@ export default function ProfilePage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [billingError, setBillingError] = useState('');
 
   // Edit modal state
   const [editing, setEditing] = useState(false);
@@ -179,12 +180,17 @@ export default function ProfilePage() {
   };
 
   const handleManageBilling = async () => {
+    setBillingError('');
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setBillingError(data.error ?? 'Could not open billing portal. Try again.');
+      }
     } catch {
-      // Silently fail — portal link is a nice-to-have
+      setBillingError('Could not open billing portal. Try again.');
     }
   };
 
@@ -280,6 +286,11 @@ export default function ProfilePage() {
             </div>
             <span className="text-slate-600 text-xs" aria-hidden="true">&#8594;</span>
           </button>
+          {billingError && (
+            <p className="text-red-400 text-xs bg-red-900/20 border border-red-900/30 rounded-xl px-4 py-3 mt-1" role="alert">
+              {billingError}
+            </p>
+          )}
 
           {[
             { label: 'Notifications', icon: Bell },

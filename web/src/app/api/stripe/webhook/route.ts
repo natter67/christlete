@@ -34,16 +34,21 @@ export async function POST(req: NextRequest) {
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
 
-      // userId stored on the customer metadata at creation time
+      // Prefer customer-level metadata; fall back to session metadata as a safety net
       const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-      const userId = customer.metadata?.supabase_user_id;
+      const userId =
+        customer.metadata?.supabase_user_id ??
+        session.metadata?.supabase_user_id;
 
-      if (!userId) break;
+      if (!userId) {
+        console.error('checkout.session.completed: no supabase_user_id found on customer or session', { customerId, sessionId: session.id });
+        break;
+      }
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-      await admin.from('subscriptions').upsert({
+      const { error: upsertError } = await admin.from('subscriptions').upsert({
         user_id: userId,
         stripe_customer_id: customerId,
         stripe_subscription_id: subscriptionId,
@@ -53,18 +58,26 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
 
+      if (upsertError) {
+        console.error('checkout.session.completed: DB upsert failed', upsertError.message);
+        return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
+      }
+
       break;
     }
 
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
       const userId = subscription.metadata?.supabase_user_id;
-      if (!userId) break;
+      if (!userId) {
+        console.error('customer.subscription.updated: no supabase_user_id in subscription metadata', { subscriptionId: subscription.id });
+        break;
+      }
 
       const isActive = ['active', 'trialing'].includes(subscription.status);
       const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-      await admin.from('subscriptions').upsert({
+      const { error: upsertError } = await admin.from('subscriptions').upsert({
         user_id: userId,
         stripe_customer_id: subscription.customer as string,
         stripe_subscription_id: subscription.id,
@@ -74,15 +87,23 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
 
+      if (upsertError) {
+        console.error('customer.subscription.updated: DB upsert failed', upsertError.message);
+        return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
+      }
+
       break;
     }
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
       const userId = subscription.metadata?.supabase_user_id;
-      if (!userId) break;
+      if (!userId) {
+        console.error('customer.subscription.deleted: no supabase_user_id in subscription metadata', { subscriptionId: subscription.id });
+        break;
+      }
 
-      await admin.from('subscriptions').upsert({
+      const { error: upsertError } = await admin.from('subscriptions').upsert({
         user_id: userId,
         stripe_customer_id: subscription.customer as string,
         stripe_subscription_id: subscription.id,
@@ -90,6 +111,11 @@ export async function POST(req: NextRequest) {
         status: 'canceled',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
+
+      if (upsertError) {
+        console.error('customer.subscription.deleted: DB upsert failed', upsertError.message);
+        return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
+      }
 
       break;
     }

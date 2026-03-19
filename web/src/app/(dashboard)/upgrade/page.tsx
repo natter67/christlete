@@ -65,13 +65,13 @@ export default function UpgradePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const monthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY ?? '';
-  const yearlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY ?? '';
+  const monthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY;
+  const yearlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY;
 
   const handleCheckout = async () => {
     const priceId = billing === 'monthly' ? monthlyPriceId : yearlyPriceId;
     if (!priceId) {
-      setError('Pricing not configured yet. Check back soon.');
+      setError('Pricing is not configured. Check back soon.');
       return;
     }
 

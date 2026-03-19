@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { ArrowRight, BookOpen, Zap, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 type Devotional = {
   title: string;
@@ -36,8 +34,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
-  const dayName = DAYS[now.getDay()];
-  const dateStr = `${MONTHS[now.getMonth()]} ${now.getDate()}`;
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
   const hour = now.getHours();
   let greeting = 'Good evening';
   if (hour < 12) greeting = 'Good morning';

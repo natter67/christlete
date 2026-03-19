@@ -41,15 +41,18 @@ export default function DevotionalPage() {
         setDevotional(devData);
 
         if (user) {
-          // Use local date to avoid UTC timezone mismatch
-          const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local TZ
+          // Build UTC bounds for the user's local calendar day
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date();
+          endOfDay.setHours(23, 59, 59, 999);
           const { data: entry } = await supabase
             .from('journal_entries')
             .select('id, body')
             .eq('user_id', user.id)
             .eq('devotional_id', devData.id)
-            .gte('created_at', `${today}T00:00:00+00:00`)
-            .lt('created_at', `${today}T23:59:59+00:00`)
+            .gte('created_at', startOfDay.toISOString())
+            .lt('created_at', endOfDay.toISOString())
             .maybeSingle();
 
           if (entry) {
