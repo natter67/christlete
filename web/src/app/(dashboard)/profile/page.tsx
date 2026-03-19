@@ -414,7 +414,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSaveProfile}
                   disabled={!editName.trim() || !editSport || saving}
-                  className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#0F172A] text-sm font-bold disabled:opacity-40"
+                  className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#0F172A] text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>

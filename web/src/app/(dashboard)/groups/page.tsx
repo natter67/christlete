@@ -202,6 +202,7 @@ export default function GroupsPage() {
                 id="new-group-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
+                maxLength={80}
                 placeholder="e.g. Westlake JV Soccer"
                 className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
               />
@@ -228,6 +229,7 @@ export default function GroupsPage() {
                 id="new-group-sport"
                 value={newSport}
                 onChange={(e) => setNewSport(e.target.value)}
+                maxLength={40}
                 placeholder="Basketball, Soccer, Track..."
                 className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
               />
@@ -238,13 +240,14 @@ export default function GroupsPage() {
                 id="new-group-desc"
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
+                maxLength={200}
                 placeholder="What is this group for?"
                 className="w-full bg-[#0F172A] border border-[#1e3a6e] text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#F59E0B] transition-colors"
               />
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setShowCreate(false)} className="flex-1 py-3 rounded-xl bg-[#0F172A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
-              <button disabled={!newName.trim() || saving} onClick={createGroup} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2">
+              <button disabled={!newName.trim() || saving} onClick={createGroup} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {saving && <Loader2 size={14} className="animate-spin" aria-hidden="true" />} Create
               </button>
             </div>
@@ -267,7 +270,7 @@ export default function GroupsPage() {
           />
           <div className="flex gap-3">
             <button onClick={() => setShowJoin(false)} className="flex-1 py-3 rounded-xl bg-[#0F172A] border border-[#1e3a6e] text-slate-400 text-sm font-semibold">Cancel</button>
-            <button disabled={!code.trim() || saving} onClick={joinByCode} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2">
+            <button disabled={!code.trim() || saving} onClick={joinByCode} className="flex-1 py-3 rounded-xl bg-[#F59E0B] text-[#080E1A] text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {saving && <Loader2 size={14} className="animate-spin" aria-hidden="true" />} Join
             </button>
           </div>

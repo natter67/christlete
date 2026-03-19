@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 
 type Devotional = {
@@ -21,6 +21,13 @@ export default function DevotionalPage() {
   const [saveError, setSaveError] = useState('');
   const [existingEntry, setExistingEntry] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -85,7 +92,8 @@ export default function DevotionalPage() {
         const { error } = await supabase
           .from('journal_entries')
           .update({ body: reflection })
-          .eq('id', existingEntry);
+          .eq('id', existingEntry)
+          .eq('user_id', userId!);
         if (error) throw error;
       } else {
         const { data: inserted, error } = await supabase
@@ -102,7 +110,7 @@ export default function DevotionalPage() {
       }
 
       setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      savedTimerRef.current = setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to save. Try again.';
       setSaveError(msg);

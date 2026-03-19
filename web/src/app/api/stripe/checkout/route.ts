@@ -15,23 +15,33 @@ export async function POST(req: NextRequest) {
     httpClient: Stripe.createFetchHttpClient(),
   });
 
+  let priceId: unknown;
   try {
-    const { priceId } = await req.json();
+    ({ priceId } = await req.json());
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 
-    // Build allowlist from server-side env vars (never exposed to browser)
-    const allowedPriceIds = [
-      process.env.STRIPE_PRICE_MONTHLY,
-      process.env.STRIPE_PRICE_YEARLY,
-    ].filter(Boolean) as string[];
+  if (typeof priceId !== 'string' || !priceId) {
+    return NextResponse.json({ error: 'Invalid price selection' }, { status: 400 });
+  }
 
-    // Require at least one env var to be set — reject everything if unconfigured
-    if (allowedPriceIds.length === 0) {
-      return NextResponse.json({ error: 'Pricing not configured' }, { status: 503 });
-    }
+  // Build allowlist from server-side env vars (never exposed to browser)
+  const allowedPriceIds = [
+    process.env.STRIPE_PRICE_MONTHLY,
+    process.env.STRIPE_PRICE_YEARLY,
+  ].filter(Boolean) as string[];
 
-    if (!priceId || !allowedPriceIds.includes(priceId)) {
-      return NextResponse.json({ error: 'Invalid price selection' }, { status: 400 });
-    }
+  // Require at least one env var to be set — reject everything if unconfigured
+  if (allowedPriceIds.length === 0) {
+    return NextResponse.json({ error: 'Pricing not configured' }, { status: 503 });
+  }
+
+  if (!allowedPriceIds.includes(priceId)) {
+    return NextResponse.json({ error: 'Invalid price selection' }, { status: 400 });
+  }
+
+  try {
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
