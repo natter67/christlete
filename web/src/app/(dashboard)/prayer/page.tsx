@@ -61,8 +61,40 @@ export default function PrayerPage() {
   const [carrying, setCarrying] = useState('');
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiPrayer, setAiPrayer] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
-  const reset = () => { setStep('feeling'); setSelected(null); setCarrying(''); setDone(false); setSaving(false); };
+  const reset = () => {
+    setStep('feeling');
+    setSelected(null);
+    setCarrying('');
+    setDone(false);
+    setSaving(false);
+    setAiPrayer(null);
+    setAiLoading(false);
+  };
+
+  const activePrayer = aiPrayer ?? selected?.prayer ?? '';
+
+  const generateAiPrayer = async () => {
+    if (!selected) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/ai/prayer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feeling: selected.id, carrying: carrying.trim() || undefined }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiPrayer(data.prayer);
+      }
+    } catch {
+      // Fall back to static prayer silently
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handlePrayed = async () => {
     if (!selected) return;
@@ -75,7 +107,7 @@ export default function PrayerPage() {
           user_id: user.id,
           feeling: selected.id,
           carrying: carrying.trim() || null,
-          prayer_text: selected.prayer,
+          prayer_text: activePrayer,
         });
         if (error) {
           console.error('Check-in error:', error.message);
@@ -194,9 +226,30 @@ export default function PrayerPage() {
             </div>
           )}
 
-          <div className="border-l-4 border-[#F59E0B] pl-6 mb-6">
-            <p className="text-white text-[15px] leading-8 italic">{selected?.prayer}</p>
+          <div className="border-l-4 border-[#F59E0B] pl-6 mb-4">
+            <p className="text-white text-[15px] leading-8 italic">
+              {aiLoading ? 'Writing your prayer...' : activePrayer}
+            </p>
           </div>
+
+          {!aiPrayer && !done && (
+            <button
+              onClick={generateAiPrayer}
+              disabled={aiLoading}
+              className="flex items-center gap-2 text-slate-400 text-xs font-semibold hover:text-white transition-colors mb-6 disabled:opacity-50"
+            >
+              <span aria-hidden="true">✦</span>
+              {aiLoading ? 'Personalizing...' : 'Personalize this prayer for me'}
+            </button>
+          )}
+          {aiPrayer && !done && (
+            <button
+              onClick={() => setAiPrayer(null)}
+              className="flex items-center gap-2 text-slate-600 text-xs hover:text-slate-400 transition-colors mb-6"
+            >
+              Back to original prayer
+            </button>
+          )}
 
           {carrying.trim() && (
             <div className="bg-[#1e3a6e]/20 border border-[#1e3a6e] rounded-2xl p-5 mb-6">
