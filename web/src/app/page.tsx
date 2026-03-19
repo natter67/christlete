@@ -66,7 +66,7 @@ export default function LandingPage() {
             href="/signup"
             className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-base px-8 py-4 rounded-xl hover:bg-[#FBBF24] transition-colors"
           >
-            Get started free <ArrowRight size={18} />
+            Get started free <ArrowRight size={18} aria-hidden="true" />
           </Link>
           <Link
             href="#pricing"
@@ -164,7 +164,7 @@ export default function LandingPage() {
               href="/signup"
               className="inline-flex items-center gap-2 text-[#F59E0B] font-bold text-sm hover:gap-3 transition-all"
             >
-              Read full devotional and journal your reflection <ArrowRight size={14} />
+              Read full devotional and journal your reflection <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -268,7 +268,7 @@ export default function LandingPage() {
           href="/signup"
           className="inline-flex items-center gap-2 bg-[#F59E0B] text-[#080E1A] font-bold text-lg px-10 py-5 rounded-xl hover:bg-[#FBBF24] transition-colors"
         >
-          Create your account <ArrowRight size={20} />
+          Create your account <ArrowRight size={20} aria-hidden="true" />
         </Link>
         <p className="text-slate-600 text-sm mt-4">Free. No credit card required.</p>
       </section>

@@ -82,7 +82,7 @@ function SignupForm() {
               className="w-14 h-14 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center mx-auto mb-5"
               aria-hidden="true"
             >
-              <span className="text-[#F59E0B] text-2xl">&#9993;</span>
+              <span className="text-[#F59E0B] text-2xl" aria-hidden="true">✉</span>
             </div>
             <h1 className="text-white text-2xl font-bold mb-2">Check your email</h1>
             <p className="text-slate-400 text-sm leading-6">

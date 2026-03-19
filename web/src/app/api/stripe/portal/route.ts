@@ -41,7 +41,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('Stripe portal error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Stripe portal error:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'Failed to open billing portal' }, { status: 500 });
   }
 }

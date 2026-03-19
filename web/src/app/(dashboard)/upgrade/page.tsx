@@ -148,7 +148,7 @@ export default function UpgradePage() {
         <button
           onClick={handleCheckout}
           disabled={loading}
-          className="w-full py-4 rounded-xl font-bold text-base bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors disabled:opacity-60"
+          className="w-full py-4 rounded-xl font-bold text-base bg-[#F59E0B] text-[#0F172A] hover:bg-[#FBBF24] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? 'Opening checkout...' : 'Start Free Trial'}
         </button>
